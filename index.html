@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Festival POS demo</title>
+    <style>
+      body { font-family: system-ui, -apple-system, sans-serif; background: #0c1c2d; color: #fff; margin: 0; min-height: 100vh; display: grid; place-items: center; }
+      .wrap { max-width: 560px; padding: 32px; text-align: center; }
+      h1 { font-size: 28px; margin: 0 0 8px; }
+      p { opacity: 0.8; line-height: 1.6; }
+      .cards { display: grid; gap: 16px; margin-top: 28px; }
+      a.card { display: block; background: #13314d; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; padding: 20px; color: #fff; text-decoration: none; transition: border-color 0.15s; }
+      a.card:hover { border-color: #c4841d; }
+      a.card strong { font-size: 18px; color: #c4841d; }
+      a.card span { display: block; opacity: 0.75; font-size: 14px; margin-top: 4px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>Festival POS</h1>
+      <p>Demo-omgeving van het eigen betaalsysteem voor de festivals van Meisjes van de Wijn en Nacht van de Wijn.</p>
+      <div class="cards">
+        <a class="card" href="./admin/"><strong>Beheer en dashboards</strong><span>Inloggen als beheer of partner: producten, kassa's, omzet en tijdlijn per minuut</span></a>
+        <a class="card" href="./pos/"><strong>De kassa (POS)</strong><span>De bar-app: koppel een kassa, log in met pincode, verkoop</span></a>
+      </div>
+    </div>
+  </body>
+</html>
