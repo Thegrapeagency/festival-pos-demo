@@ -4,6 +4,28 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Festival POS</title>
+    <script>
+      // Vangnet tegen een wit scherm na een herdeploy: een in de browser gecachte
+      // index.html kan verwijzen naar een JS-bundel die na de nieuwe deploy is
+      // vervangen (404). Vang die laadfout en herlaad éénmalig met een verse
+      // index.html via een cache-omzeilende query. Onderbreekt geen trage laadbeurt
+      // (reageert alleen op een echte laadfout), en de vlag voorkomt een herlaadlus.
+      (function () {
+        window.addEventListener('error', function (e) {
+          var t = e && e.target
+          if (t && t.tagName === 'SCRIPT' && t.src && t.src.indexOf('/assets/') !== -1 && !sessionStorage.getItem('fp_recovered')) {
+            sessionStorage.setItem('fp_recovered', '1')
+            location.replace(location.pathname + '?v=' + Date.now())
+          }
+        }, true)
+        window.addEventListener('load', function () {
+          setTimeout(function () {
+            var root = document.getElementById('root')
+            if (root && root.childElementCount > 0) sessionStorage.removeItem('fp_recovered')
+          }, 1000)
+        })
+      })()
+    </script>
     <script type="module" crossorigin src="./assets/index-D4i0YSO3.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-B6OGLOZf.css">
   </head>
