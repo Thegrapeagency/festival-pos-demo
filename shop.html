@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Ticketshop</title>
+<style>
+:root { --navy:#0c1c2d; --navy2:#13314d; --gold:#c4841d; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:system-ui,-apple-system,'Segoe UI',sans-serif; background:var(--navy); color:#fff; }
+.wrap { max-width:640px; margin:0 auto; padding:28px 18px 60px; }
+.org { opacity:.7; font-size:14px; margin:0 0 4px; }
+h1 { margin:0 0 24px; font-size:clamp(26px,6vw,36px); }
+.tt { background:var(--navy2); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:18px; margin-bottom:14px; display:flex; justify-content:space-between; gap:14px; align-items:center; }
+.tt .info { flex:1; }
+.tt h3 { margin:0 0 4px; font-size:17px; }
+.tt p { margin:0; font-size:13.5px; opacity:.75; line-height:1.45; }
+.tt .price { font-weight:800; font-size:16px; margin-top:6px; color:var(--gold); }
+.badge { display:inline-block; font-size:12px; padding:3px 10px; border-radius:99px; background:rgba(255,255,255,.12); margin-top:6px; }
+.badge.warn { background:rgba(220,120,60,.25); }
+.stepper { display:flex; align-items:center; gap:10px; }
+.stepper button { width:42px; height:42px; border-radius:50%; border:1px solid rgba(255,255,255,.3); background:rgba(255,255,255,.08); color:#fff; font-size:20px; cursor:pointer; }
+.stepper button:disabled { opacity:.3; cursor:default; }
+.stepper span { min-width:24px; text-align:center; font-weight:700; font-size:17px; }
+.panel { background:var(--navy2); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:20px; margin-top:22px; }
+.row { display:flex; justify-content:space-between; font-size:14.5px; padding:4px 0; opacity:.9; }
+.row.total { border-top:1px solid rgba(255,255,255,.2); margin-top:8px; padding-top:10px; font-weight:800; font-size:16px; opacity:1; }
+label { display:block; font-size:14px; margin:14px 0 6px; opacity:.9; }
+input { width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.07); color:#fff; font-size:16px; }
+input:focus { outline:2px solid var(--gold); }
+.hp { display:none !important; }
+.btn { width:100%; margin-top:18px; background:var(--gold); color:var(--navy); font-weight:800; font-size:17px; padding:15px; border-radius:12px; border:0; cursor:pointer; }
+.btn:disabled { opacity:.5; }
+.msg { margin-top:14px; padding:12px 14px; border-radius:10px; font-size:14.5px; display:none; }
+.msg.err { display:block; background:rgba(220,80,80,.18); border:1px solid rgba(220,80,80,.5); }
+.note { text-align:center; opacity:.55; font-size:12.5px; margin-top:22px; line-height:1.5; }
+.state { text-align:center; padding:60px 0; opacity:.8; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading" class="state">Shop laden…</div>
+  <div id="notfound" class="state" style="display:none">Deze ticketshop bestaat niet (meer).<br/>Controleer de link bij de organisator.</div>
+  <div id="shop" style="display:none">
+    <p class="org" id="organizer"></p>
+    <h1 id="eventName"></h1>
+    <div id="types"></div>
+    <div class="panel" id="checkout" style="display:none">
+      <div id="lines"></div>
+      <div class="row total"><span>Totaal</span><span id="total"></span></div>
+      <label for="name">Je naam</label>
+      <input id="name" type="text" maxlength="120" autocomplete="name" />
+      <label for="email">Je e-mailadres</label>
+      <input id="email" type="email" autocomplete="email" />
+      <div class="hp"><input type="text" tabindex="-1" autocomplete="off" id="hpf" /></div>
+      <button class="btn" id="payBtn">Bestellen</button>
+      <div class="msg" id="msg"></div>
+    </div>
+    <p class="note">Na betaling ontvang je je tickets met QR-code direct op je ticketpagina.<br/>Bewaar die link goed: de link is je ticket.</p>
+  </div>
+</div>
+<script>
+const FN = 'https://snfojphxsbzfewwfbfka.supabase.co/functions/v1';
+const slug = new URLSearchParams(location.search).get('event') || '';
+const euro = c => '€ ' + (c / 100).toFixed(2).replace('.', ',');
+let cfg = null; const qty = {};
+
+async function load() {
+  if (!slug) return show('notfound');
+  try {
+    const r = await fetch(FN + '/ticket-shop?event=' + encodeURIComponent(slug));
+    if (!r.ok) return show('notfound');
+    cfg = await r.json();
+    document.getElementById('organizer').textContent = cfg.event.organizer;
+    document.getElementById('eventName').textContent = cfg.event.name;
+    document.title = cfg.event.name + ' — tickets';
+    render(); show('shop');
+  } catch { show('notfound'); }
+}
+function show(id) {
+  for (const x of ['loading','notfound','shop']) document.getElementById(x).style.display = x === id ? 'block' : 'none';
+}
+function render() {
+  const el = document.getElementById('types'); el.innerHTML = '';
+  for (const t of cfg.types) {
+    const q = qty[t.id] || 0;
+    const div = document.createElement('div'); div.className = 'tt';
+    const canBuy = t.state === 'available';
+    let badge = '';
+    if (t.state === 'sold_out') badge = '<span class="badge warn">Uitverkocht</span>';
+    if (t.state === 'coming_soon') badge = '<span class="badge">Binnenkort te koop</span>';
+    if (t.state === 'ended') badge = '<span class="badge">Verkoop gesloten</span>';
+    if (t.left !== null && canBuy) badge = `<span class="badge warn">Nog ${t.left} beschikbaar</span>`;
+    div.innerHTML = `<div class="info"><h3></h3><p></p><div class="price">${t.price_cents === 0 ? 'Gratis' : euro(t.price_cents)}</div>${badge}</div>` +
+      (canBuy ? `<div class="stepper"><button data-d="-1" ${q===0?'disabled':''}>−</button><span>${q}</span><button data-d="1" ${q>=t.max_per_order?'disabled':''}>+</button></div>` : '');
+    div.querySelector('h3').textContent = t.name;
+    div.querySelector('p').textContent = t.description || '';
+    div.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+      qty[t.id] = Math.max(0, Math.min(t.max_per_order, (qty[t.id] || 0) + parseInt(b.dataset.d)));
+      render();
+    }));
+    el.appendChild(div);
+  }
+  const items = cfg.types.filter(t => (qty[t.id] || 0) > 0);
+  const co = document.getElementById('checkout');
+  co.style.display = items.length ? 'block' : 'none';
+  if (items.length) {
+    const lines = document.getElementById('lines'); lines.innerHTML = '';
+    let total = 0;
+    for (const t of items) {
+      const q = qty[t.id]; total += q * t.price_cents;
+      const row = document.createElement('div'); row.className = 'row';
+      row.innerHTML = `<span></span><span>${euro(q * t.price_cents)}</span>`;
+      row.querySelector('span').textContent = q + '× ' + t.name;
+      lines.appendChild(row);
+    }
+    document.getElementById('total').textContent = euro(total);
+  }
+}
+document.getElementById('payBtn').addEventListener('click', async () => {
+  const msg = document.getElementById('msg'); msg.className = 'msg';
+  const btn = document.getElementById('payBtn');
+  const items = cfg.types.filter(t => (qty[t.id] || 0) > 0).map(t => ({ ticket_type_id: t.id, qty: qty[t.id] }));
+  const name = document.getElementById('name').value.trim();
+  const email = document.getElementById('email').value.trim();
+  if (!name || !email) { msg.className = 'msg err'; msg.textContent = 'Vul je naam en e-mailadres in.'; return; }
+  btn.disabled = true; btn.textContent = 'Bezig…';
+  try {
+    const r = await fetch(FN + '/ticket-order', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ event_id: cfg.event.id, items, name, email, website: document.getElementById('hpf').value }),
+    });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || 'Bestellen mislukt, probeer het opnieuw.');
+    location.href = d.checkout_url;
+  } catch (err) {
+    msg.className = 'msg err'; msg.textContent = err.message;
+    btn.disabled = false; btn.textContent = 'Bestellen';
+  }
+});
+load();
+</script>
+</body>
+</html>

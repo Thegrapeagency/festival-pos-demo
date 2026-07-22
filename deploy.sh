@@ -13,6 +13,8 @@ npm --prefix "$SRC/pos-web" run build
 # index.html wordt overschreven (vaste naam); nieuwe hashed assets komen erbij, oude blijven staan
 cp -r "$SRC/admin/dist/." "$DST/admin/"
 cp -r "$SRC/pos-web/dist/." "$DST/pos/"
+# publieke site (landing/signup/shop/tickets) — statisch, geen build nodig
+cp -r "$SRC/site/." "$DST/"
 cd "$DST"
 git add -A
 git commit -m "${1:-Deploy update}" && git push origin main

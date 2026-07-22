@@ -1,29 +1,166 @@
 <!doctype html>
 <html lang="nl">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Festival POS demo</title>
-    <style>
-      body { font-family: system-ui, -apple-system, sans-serif; background: #0c1c2d; color: #fff; margin: 0; min-height: 100vh; display: grid; place-items: center; }
-      .wrap { max-width: 560px; padding: 32px; text-align: center; }
-      h1 { font-size: 28px; margin: 0 0 8px; }
-      p { opacity: 0.8; line-height: 1.6; }
-      .cards { display: grid; gap: 16px; margin-top: 28px; }
-      a.card { display: block; background: #13314d; border: 1px solid rgba(255,255,255,0.15); border-radius: 14px; padding: 20px; color: #fff; text-decoration: none; transition: border-color 0.15s; }
-      a.card:hover { border-color: #c4841d; }
-      a.card strong { font-size: 18px; color: #c4841d; }
-      a.card span { display: block; opacity: 0.75; font-size: 14px; margin-top: 4px; }
-    </style>
-  </head>
-  <body>
-    <div class="wrap">
-      <h1>Festival POS</h1>
-      <p>Demo-omgeving van het eigen betaalsysteem voor de festivals van Meisjes van de Wijn en Nacht van de Wijn.</p>
-      <div class="cards">
-        <a class="card" href="./admin/"><strong>Beheer en dashboards</strong><span>Inloggen als beheer of partner: producten, kassa's, omzet en tijdlijn per minuut</span></a>
-        <a class="card" href="./pos/"><strong>De kassa (POS)</strong><span>De bar-app: koppel een kassa, log in met pincode, verkoop</span></a>
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Entree — ticketing en kassa voor evenementen</title>
+<meta name="description" content="Verkoop tickets en run je bars met één systeem. Maak gratis een account en je event staat binnen vijf minuten online." />
+<style>
+:root { --navy:#0c1c2d; --navy2:#13314d; --gold:#c4841d; --paper:#f7f2e9; --ink:#1c2733; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:system-ui,-apple-system,'Segoe UI',sans-serif; background:var(--navy); color:#fff; }
+.wrap { max-width:1080px; margin:0 auto; padding:0 20px; }
+header { display:flex; align-items:center; justify-content:space-between; padding:20px 0; }
+.logo { font-size:22px; font-weight:800; letter-spacing:.5px; }
+.logo span { color:var(--gold); }
+header nav a { color:#fff; text-decoration:none; opacity:.85; margin-left:18px; font-size:15px; }
+header nav a.btn { background:var(--gold); color:var(--navy); padding:9px 16px; border-radius:10px; font-weight:700; opacity:1; }
+.hero { padding:56px 0 40px; display:grid; grid-template-columns:1.1fr .9fr; gap:40px; align-items:center; }
+.hero h1 { font-size:clamp(30px,5vw,46px); line-height:1.12; margin:0 0 14px; }
+.hero h1 em { color:var(--gold); font-style:normal; }
+.hero p.lead { font-size:18px; line-height:1.6; opacity:.85; margin:0 0 22px; }
+.hero .cta { display:flex; gap:12px; flex-wrap:wrap; }
+.btn-xl { display:inline-block; background:var(--gold); color:var(--navy); font-weight:800; font-size:17px; padding:14px 24px; border-radius:12px; text-decoration:none; border:0; cursor:pointer; }
+.btn-ghost { display:inline-block; color:#fff; border:1px solid rgba(255,255,255,.35); padding:14px 24px; border-radius:12px; text-decoration:none; font-size:17px; }
+.mods { display:grid; gap:14px; }
+.mod { background:var(--navy2); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:20px; }
+.mod h3 { margin:0 0 6px; color:var(--gold); font-size:18px; }
+.mod p { margin:0; font-size:14.5px; line-height:1.55; opacity:.85; }
+.mod .soon { font-size:12px; background:rgba(255,255,255,.12); border-radius:99px; padding:3px 10px; margin-left:8px; vertical-align:2px; }
+section.how { background:var(--paper); color:var(--ink); padding:48px 0; }
+section.how h2, section.signup h2 { font-size:28px; margin:0 0 22px; }
+.steps { display:grid; grid-template-columns:repeat(3,1fr); gap:18px; }
+.step { background:#fff; border-radius:14px; padding:20px; border:1px solid #e6dcc8; }
+.step b { display:block; color:var(--gold); font-size:26px; }
+.step h4 { margin:8px 0 6px; }
+.step p { margin:0; font-size:14.5px; line-height:1.5; color:#4a5563; }
+section.signup { padding:52px 0 64px; }
+.card { background:var(--navy2); border:1px solid rgba(255,255,255,.14); border-radius:18px; padding:28px; max-width:560px; }
+label { display:block; font-size:14px; margin:14px 0 6px; opacity:.9; }
+input[type=text],input[type=email],input[type=password] { width:100%; padding:12px 14px; border-radius:10px; border:1px solid rgba(255,255,255,.25); background:rgba(255,255,255,.07); color:#fff; font-size:16px; }
+input:focus { outline:2px solid var(--gold); }
+.modpick { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px; }
+.modpick label.pick { display:flex; gap:10px; align-items:flex-start; background:rgba(255,255,255,.06); border:1px solid rgba(255,255,255,.2); border-radius:12px; padding:12px; margin:0; cursor:pointer; }
+.modpick label.pick.on { border-color:var(--gold); background:rgba(196,132,29,.12); }
+.modpick input { margin-top:3px; }
+.modpick b { display:block; font-size:15px; }
+.modpick small { opacity:.75; line-height:1.35; display:block; margin-top:2px; }
+.hp { display:none !important; }
+.msg { margin-top:14px; padding:12px 14px; border-radius:10px; font-size:14.5px; display:none; }
+.msg.err { display:block; background:rgba(220,80,80,.18); border:1px solid rgba(220,80,80,.5); }
+.msg.ok { display:block; background:rgba(80,180,120,.16); border:1px solid rgba(80,180,120,.5); }
+footer { padding:28px 0 40px; opacity:.6; font-size:13.5px; line-height:1.6; }
+@media (max-width:820px) { .hero { grid-template-columns:1fr; } .steps { grid-template-columns:1fr; } .modpick { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">Entree<span>.</span></div>
+    <nav>
+      <a href="#hoe">Hoe het werkt</a>
+      <a href="./admin/">Inloggen</a>
+      <a class="btn" href="#signup">Gratis starten</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>Tickets verkopen en bars runnen, <em>alles in één systeem</em>.</h1>
+      <p class="lead">Entree is het platform voor eventorganisatoren: eigen ticketshop met iDEAL, kassa-app voor je bars, live dashboards en alles onder je eigen beheer. Gebouwd op de festivalvloer, niet in een kantoortuin.</p>
+      <div class="cta">
+        <a class="btn-xl" href="#signup">Maak gratis je account</a>
+        <a class="btn-ghost" href="#hoe">Eerst even kijken</a>
       </div>
     </div>
-  </body>
+    <div class="mods">
+      <div class="mod"><h3>🎟️ Ticketing</h3><p>Eigen ticketshop voor je event: tickettypes, capaciteit, verkoopvensters, iDEAL via je eigen Mollie-account en QR-tickets aan de deur. Het geld gaat rechtstreeks naar jouw rekening.</p></div>
+      <div class="mod"><h3>🍷 Kassa (POS)</h3><p>Bar-kassa's op telefoon of tablet: productknoppen, varianten per glas of fles, voorraad, refunds met supervisor-pin en een live omzetdashboard per kassa.</p></div>
+      <div class="mod"><h3>💳 Cashless wallet <span class="soon">binnenkort</span></h3><p>Bezoekers laden saldo en betalen met een QR. Fundament staat al klaar.</p></div>
+    </div>
+  </div>
+</div>
+
+<section class="how" id="hoe">
+  <div class="wrap">
+    <h2>Binnen vijf minuten online</h2>
+    <div class="steps">
+      <div class="step"><b>1</b><h4>Maak je account</h4><p>Kies je modules, vul je organisatie en je eerste event in. Geen creditcard nodig.</p></div>
+      <div class="step"><b>2</b><h4>Richt je event in</h4><p>Tickettypes met prijzen en capaciteit, of je barproducten en kassa's. Alles zelf te beheren in de portal.</p></div>
+      <div class="step"><b>3</b><h4>Verkoop</h4><p>Deel de link van je ticketshop, koppel je Mollie-account en de verkoop loopt. Aan de deur scan je de QR-codes.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="signup" id="signup">
+  <div class="wrap">
+    <h2>Maak je account</h2>
+    <div class="card">
+      <form id="signupForm">
+        <label>Welke modules wil je gebruiken?</label>
+        <div class="modpick">
+          <label class="pick on"><input type="checkbox" name="modules" value="ticketing" checked><span><b>🎟️ Ticketing</b><small>Ticketshop, QR-tickets, iDEAL</small></span></label>
+          <label class="pick on"><input type="checkbox" name="modules" value="pos" checked><span><b>🍷 Kassa (POS)</b><small>Bar-kassa's, voorraad, dashboards</small></span></label>
+        </div>
+        <label for="org">Naam van je organisatie</label>
+        <input type="text" id="org" required maxlength="80" placeholder="Bijv. Stichting Zomerfeest" />
+        <label for="event">Naam van je eerste event</label>
+        <input type="text" id="event" maxlength="80" placeholder="Bijv. Zomerfeest 2026" />
+        <label for="email">E-mailadres</label>
+        <input type="email" id="email" required placeholder="jij@organisatie.nl" />
+        <label for="pw">Wachtwoord (minimaal 8 tekens)</label>
+        <input type="password" id="pw" required minlength="8" />
+        <div class="hp"><input type="text" tabindex="-1" autocomplete="off" id="hpf" /></div>
+        <div style="margin-top:20px"><button class="btn-xl" type="submit" id="subBtn">Account aanmaken</button></div>
+        <div class="msg" id="msg"></div>
+      </form>
+      <div id="done" style="display:none">
+        <h3 style="margin:0 0 8px">🎉 Je account staat klaar!</h3>
+        <p style="line-height:1.6;opacity:.9">Je organisatie en je eerste event zijn aangemaakt. Log in op de portal om tickettypes of barproducten toe te voegen.</p>
+        <p><a class="btn-xl" href="./admin/">Naar de portal</a></p>
+        <p style="font-size:14px;opacity:.8">Je ticketshop staat op: <a id="shopLink" href="#" style="color:var(--gold)"></a></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">Entree is een product van The Grape Agency. Betalingen lopen rechtstreeks via jouw eigen Mollie-account; wij raken je geld nooit aan.</div>
+</footer>
+
+<script>
+const FN = 'https://snfojphxsbzfewwfbfka.supabase.co/functions/v1';
+document.querySelectorAll('.modpick input').forEach(cb => {
+  cb.addEventListener('change', () => cb.closest('.pick').classList.toggle('on', cb.checked));
+});
+document.getElementById('signupForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const msg = document.getElementById('msg'); msg.className = 'msg';
+  const btn = document.getElementById('subBtn'); btn.disabled = true; btn.textContent = 'Bezig…';
+  const modules = [...document.querySelectorAll('.modpick input:checked')].map(c => c.value);
+  try {
+    const r = await fetch(FN + '/signup', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        org_name: document.getElementById('org').value,
+        event_name: document.getElementById('event').value,
+        email: document.getElementById('email').value,
+        password: document.getElementById('pw').value,
+        modules, website: document.getElementById('hpf').value,
+      }),
+    });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || 'Er ging iets mis, probeer het opnieuw.');
+    document.getElementById('signupForm').style.display = 'none';
+    const link = document.getElementById('shopLink');
+    // De shoplink met event-slug staat in de portal; hier tonen we de basis.
+    link.href = './shop.html'; link.textContent = 'zichtbaar in de portal onder Tickets';
+    document.getElementById('done').style.display = 'block';
+  } catch (err) {
+    msg.className = 'msg err'; msg.textContent = err.message;
+    btn.disabled = false; btn.textContent = 'Account aanmaken';
+  }
+});
+</script>
+</body>
 </html>

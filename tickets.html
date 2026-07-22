@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Je tickets</title>
+<style>
+:root { --navy:#0c1c2d; --navy2:#13314d; --gold:#c4841d; }
+* { box-sizing:border-box; }
+body { margin:0; font-family:system-ui,-apple-system,'Segoe UI',sans-serif; background:var(--navy); color:#fff; }
+.wrap { max-width:560px; margin:0 auto; padding:28px 18px 60px; }
+h1 { margin:0 0 6px; font-size:clamp(24px,6vw,32px); }
+.sub { opacity:.75; margin:0 0 24px; line-height:1.5; }
+.state { text-align:center; padding:60px 0; opacity:.8; line-height:1.6; }
+.spin { font-size:26px; }
+.ticket { background:#fff; color:#14202e; border-radius:16px; margin-bottom:16px; overflow:hidden; }
+.ticket .head { background:var(--navy2); color:#fff; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; }
+.ticket .head b { font-size:15px; }
+.ticket .head .st { font-size:12px; background:rgba(255,255,255,.15); border-radius:99px; padding:3px 10px; }
+.ticket .head .st.used { background:rgba(220,120,60,.4); }
+.ticket .body { display:flex; align-items:center; gap:18px; padding:16px 18px; }
+.ticket .qr { width:120px; height:120px; flex:0 0 auto; }
+.ticket .meta { font-size:14px; line-height:1.6; }
+.ticket .code { font-family:ui-monospace,monospace; font-weight:700; letter-spacing:1px; }
+.panel { background:var(--navy2); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:20px; margin-top:18px; font-size:14.5px; line-height:1.6; }
+.row { display:flex; justify-content:space-between; padding:3px 0; opacity:.9; }
+a { color:var(--gold); }
+.btn { display:inline-block; margin-top:10px; background:var(--gold); color:var(--navy); font-weight:800; padding:12px 20px; border-radius:12px; border:0; cursor:pointer; text-decoration:none; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div id="loading" class="state"><div class="spin">⏳</div>Bestelling ophalen…</div>
+  <div id="pending" class="state" style="display:none"><div class="spin">💳</div>Je betaling wordt nog verwerkt.<br/>Dit scherm ververst vanzelf.</div>
+  <div id="failed" class="state" style="display:none">Deze bestelling is niet afgerond.<br/><a id="retry" href="#">Terug naar de shop</a></div>
+  <div id="notfound" class="state" style="display:none">Geen bestelling gevonden.<br/>Controleer de link uit je bevestiging.</div>
+  <div id="paid" style="display:none">
+    <h1 id="eventName"></h1>
+    <p class="sub">Bestelling van <span id="buyer"></span>. Laat aan de deur de QR-code scannen. Bewaar deze link goed: dit ÍS je ticket.</p>
+    <div id="list"></div>
+    <div class="panel"><div id="lines"></div><div class="row" style="font-weight:800;border-top:1px solid rgba(255,255,255,.2);margin-top:6px;padding-top:8px"><span>Totaal</span><span id="total"></span></div></div>
+  </div>
+</div>
+<script src="./qrcode.min.js"></script>
+<script>
+const FN = 'https://snfojphxsbzfewwfbfka.supabase.co/functions/v1';
+const token = new URLSearchParams(location.search).get('order') || '';
+const euro = c => '€ ' + (c / 100).toFixed(2).replace('.', ',');
+let tries = 0;
+
+function show(id) {
+  for (const x of ['loading','pending','failed','notfound','paid']) document.getElementById(x).style.display = x === id ? 'block' : 'none';
+}
+async function poll() {
+  if (!token) return show('notfound');
+  try {
+    const r = await fetch(FN + '/ticket-status?order=' + encodeURIComponent(token));
+    if (r.status === 404) return show('notfound');
+    if (!r.ok) throw new Error('net');
+    const d = await r.json();
+    if (d.status === 'paid') return render(d);
+    if (d.status === 'expired' || d.status === 'canceled') return show('failed');
+    show('pending');
+    if (++tries < 60) setTimeout(poll, 3000);
+  } catch {
+    // netwerk-hik: rustig opnieuw proberen, betaling is veilig
+    if (++tries < 60) setTimeout(poll, 4000); else show('notfound');
+  }
+}
+function render(d) {
+  document.getElementById('eventName').textContent = d.event;
+  document.getElementById('buyer').textContent = d.buyer_name;
+  const list = document.getElementById('list'); list.innerHTML = '';
+  d.tickets.forEach((t, i) => {
+    const div = document.createElement('div'); div.className = 'ticket';
+    div.innerHTML = `<div class="head"><b></b><span class="st ${t.status === 'used' ? 'used' : ''}">${t.status === 'used' ? 'Gescand' : 'Geldig'}</span></div>` +
+      `<div class="body"><div class="qr" id="qr${i}"></div><div class="meta"><div></div><div class="code"></div></div></div>`;
+    div.querySelector('.head b').textContent = t.type;
+    div.querySelector('.meta div').textContent = t.holder_name || d.buyer_name;
+    div.querySelector('.code').textContent = t.code;
+    list.appendChild(div);
+    new QRCode(document.getElementById('qr' + i), { text: t.code, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M });
+  });
+  const lines = document.getElementById('lines'); lines.innerHTML = '';
+  for (const it of d.items) {
+    const row = document.createElement('div'); row.className = 'row';
+    row.innerHTML = '<span></span><span>' + euro(it.qty * it.unit_price_cents) + '</span>';
+    row.querySelector('span').textContent = it.qty + '× ' + it.name;
+    lines.appendChild(row);
+  }
+  document.getElementById('total').textContent = euro(d.total_cents);
+  show('paid');
+}
+poll();
+</script>
+</body>
+</html>
