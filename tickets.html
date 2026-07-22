@@ -46,6 +46,24 @@ a { color:var(--gold); }
 <script>
 const FN = 'https://snfojphxsbzfewwfbfka.supabase.co/functions/v1';
 const token = new URLSearchParams(location.search).get('order') || '';
+
+// QR-lib kan bij een verse deploy/cache-miss ontbreken; tickets (met leesbare
+// code) moeten dan alsnog tonen. Eén herlaadpoging met cache-bust, daarna
+// tekenen we wat er nog openstaat.
+const qrQueue = [];
+let qrRetried = false;
+function drawQR(el, code) {
+  if (typeof QRCode !== 'undefined') {
+    try { new QRCode(el, { text: code, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M }); return; } catch { /* code-tekst blijft leesbaar */ }
+  }
+  qrQueue.push([el, code]);
+  if (qrRetried) return;
+  qrRetried = true;
+  const s = document.createElement('script');
+  s.src = './qrcode.min.js?v=' + Date.now();
+  s.onload = () => { while (qrQueue.length) { const [e, c] = qrQueue.shift(); try { new QRCode(e, { text: c, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M }); } catch {} } };
+  document.head.appendChild(s);
+}
 const euro = c => '€ ' + (c / 100).toFixed(2).replace('.', ',');
 let tries = 0;
 
@@ -80,7 +98,7 @@ function render(d) {
     div.querySelector('.meta div').textContent = t.holder_name || d.buyer_name;
     div.querySelector('.code').textContent = t.code;
     list.appendChild(div);
-    new QRCode(document.getElementById('qr' + i), { text: t.code, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M });
+    drawQR(document.getElementById('qr' + i), t.code);
   });
   const lines = document.getElementById('lines'); lines.innerHTML = '';
   for (const it of d.items) {
