@@ -47,21 +47,25 @@ a { color:var(--gold); }
 const FN = 'https://snfojphxsbzfewwfbfka.supabase.co/functions/v1';
 const token = new URLSearchParams(location.search).get('order') || '';
 
-// QR-lib kan bij een verse deploy/cache-miss ontbreken; tickets (met leesbare
-// code) moeten dan alsnog tonen. Eén herlaadpoging met cache-bust, daarna
-// tekenen we wat er nog openstaat.
+// QR via qrcode-generator (globale `qrcode`, zelfde lib als de NvdW-site).
+// Kan de lib bij een verse deploy/cache-miss ontbreken, dan één herlaadpoging
+// met cache-bust; de leesbare ticketcode blijft hoe dan ook staan.
 const qrQueue = [];
 let qrRetried = false;
 function drawQR(el, code) {
-  if (typeof QRCode !== 'undefined') {
-    try { new QRCode(el, { text: code, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M }); return; } catch { /* code-tekst blijft leesbaar */ }
+  if (typeof qrcode !== 'undefined') {
+    try {
+      const qr = qrcode(0, 'M'); qr.addData(code); qr.make();
+      el.innerHTML = qr.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+      return;
+    } catch { /* code-tekst blijft leesbaar */ }
   }
   qrQueue.push([el, code]);
   if (qrRetried) return;
   qrRetried = true;
   const s = document.createElement('script');
   s.src = './qrcode.min.js?v=' + Date.now();
-  s.onload = () => { while (qrQueue.length) { const [e, c] = qrQueue.shift(); try { new QRCode(e, { text: c, width: 120, height: 120, correctLevel: QRCode.CorrectLevel.M }); } catch {} } };
+  s.onload = () => { while (qrQueue.length) { const [e, c] = qrQueue.shift(); drawQR(e, c); } };
   document.head.appendChild(s);
 }
 const euro = c => '€ ' + (c / 100).toFixed(2).replace('.', ',');
