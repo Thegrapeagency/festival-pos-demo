@@ -38,6 +38,7 @@ a { color:var(--gold); }
   <div id="paid" style="display:none">
     <h1 id="eventName"></h1>
     <p class="sub">Bestelling van <span id="buyer"></span>. Laat aan de deur de QR-code scannen. Bewaar deze link goed: dit ÍS je ticket.</p>
+    <p class="sub" id="note" style="display:none"></p>
     <div id="list"></div>
     <div class="panel"><div id="lines"></div><div class="row" style="font-weight:800;border-top:1px solid rgba(255,255,255,.2);margin-top:6px;padding-top:8px"><span>Totaal</span><span id="total"></span></div></div>
   </div>
@@ -91,6 +92,9 @@ async function poll() {
   }
 }
 function render(d) {
+  const shop = d.shop || {};
+  if (/^#[0-9a-fA-F]{6}$/.test(shop.accent_color || '')) document.documentElement.style.setProperty('--gold', shop.accent_color);
+  if (shop.ticket_note) { const n = document.getElementById('note'); n.textContent = shop.ticket_note; n.style.display = 'block'; }
   document.getElementById('eventName').textContent = d.event;
   document.getElementById('buyer').textContent = d.buyer_name;
   const list = document.getElementById('list'); list.innerHTML = '';

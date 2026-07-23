@@ -45,6 +45,7 @@ input:focus { outline:2px solid var(--gold); }
   <div id="shop" style="display:none">
     <p class="org" id="organizer"></p>
     <h1 id="eventName"></h1>
+    <p id="intro" style="display:none;opacity:.85;line-height:1.6;margin:-10px 0 22px"></p>
     <div id="types"></div>
     <div class="panel" id="checkout" style="display:none">
       <div id="lines"></div>
@@ -75,11 +76,23 @@ async function load() {
     document.getElementById('organizer').textContent = cfg.event.organizer;
     document.getElementById('eventName').textContent = cfg.event.name;
     document.title = cfg.event.name + ' — tickets';
+    applyBranding(cfg.shop || {});
     render(); show('shop');
   } catch { show('notfound'); }
 }
 function show(id) {
   for (const x of ['loading','notfound','shop']) document.getElementById(x).style.display = x === id ? 'block' : 'none';
+}
+// Personalisatie door de organisator: accentkleur, introtekst, Meta Pixel.
+function applyBranding(shop) {
+  if (/^#[0-9a-fA-F]{6}$/.test(shop.accent_color || '')) document.documentElement.style.setProperty('--gold', shop.accent_color);
+  if (shop.intro) { const el = document.getElementById('intro'); el.textContent = shop.intro; el.style.display = 'block'; }
+  if (/^\d{5,20}$/.test(shop.pixel_id || '')) {
+    !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;
+    s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+    window.fbq('init', shop.pixel_id); window.fbq('track', 'PageView');
+  }
 }
 function render() {
   const el = document.getElementById('types'); el.innerHTML = '';
@@ -126,6 +139,7 @@ document.getElementById('payBtn').addEventListener('click', async () => {
   const email = document.getElementById('email').value.trim();
   if (!name || !email) { msg.className = 'msg err'; msg.textContent = 'Vul je naam en e-mailadres in.'; return; }
   btn.disabled = true; btn.textContent = 'Bezig…';
+  if (window.fbq) window.fbq('track', 'InitiateCheckout');
   try {
     const r = await fetch(FN + '/ticket-order', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
