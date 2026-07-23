@@ -43,13 +43,18 @@ input:focus { outline:2px solid var(--gold); }
   <div id="loading" class="state">Shop laden…</div>
   <div id="notfound" class="state" style="display:none">Deze ticketshop bestaat niet (meer).<br/>Controleer de link bij de organisator.</div>
   <div id="shop" style="display:none">
+    <img id="logo" alt="" style="display:none;max-height:64px;max-width:220px;margin:0 0 14px;border-radius:10px" />
     <p class="org" id="organizer"></p>
     <h1 id="eventName"></h1>
     <p id="intro" style="display:none;opacity:.85;line-height:1.6;margin:-10px 0 22px"></p>
     <div id="types"></div>
     <div class="panel" id="checkout" style="display:none">
       <div id="lines"></div>
+      <div class="row" id="feeRow" style="display:none"><span>Servicekosten</span><span id="fee"></span></div>
       <div class="row total"><span>Totaal</span><span id="total"></span></div>
+      <label for="discount">Kortingscode (optioneel)</label>
+      <input id="discount" type="text" autocomplete="off" placeholder="Bijv. EARLYBIRD" />
+      <p class="note" id="discountNote" style="display:none;text-align:left;margin:6px 0 0">De korting wordt bij het afrekenen verrekend.</p>
       <label for="name">Je naam</label>
       <input id="name" type="text" maxlength="120" autocomplete="name" />
       <label for="email">Je e-mailadres</label>
@@ -87,6 +92,9 @@ function show(id) {
 function applyBranding(shop) {
   if (/^#[0-9a-fA-F]{6}$/.test(shop.accent_color || '')) document.documentElement.style.setProperty('--gold', shop.accent_color);
   if (shop.intro) { const el = document.getElementById('intro'); el.textContent = shop.intro; el.style.display = 'block'; }
+  if (shop.logo_url && /^https:\/\/snfojphxsbzfewwfbfka\.supabase\.co\//.test(shop.logo_url)) {
+    const img = document.getElementById('logo'); img.src = shop.logo_url; img.style.display = 'block';
+  }
   if (/^\d{5,20}$/.test(shop.pixel_id || '')) {
     !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};
     if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;
@@ -120,15 +128,22 @@ function render() {
   co.style.display = items.length ? 'block' : 'none';
   if (items.length) {
     const lines = document.getElementById('lines'); lines.innerHTML = '';
-    let total = 0;
+    let total = 0, feeTickets = 0;
     for (const t of items) {
       const q = qty[t.id]; total += q * t.price_cents;
+      if (t.price_cents > 0) feeTickets += q;
       const row = document.createElement('div'); row.className = 'row';
       row.innerHTML = `<span></span><span>${euro(q * t.price_cents)}</span>`;
       row.querySelector('span').textContent = q + '× ' + t.name;
       lines.appendChild(row);
     }
-    document.getElementById('total').textContent = euro(total);
+    // Servicekosten alleen op betaalde tickets, gelijk aan de server-berekening.
+    const fee = feeTickets * (cfg.service_fee_cents || 0);
+    const feeRow = document.getElementById('feeRow');
+    feeRow.style.display = fee > 0 ? 'flex' : 'none';
+    if (fee > 0) document.getElementById('fee').textContent = euro(fee);
+    document.getElementById('total').textContent = euro(total + fee);
+    document.getElementById('discountNote').style.display = document.getElementById('discount').value.trim() ? 'block' : 'none';
   }
 }
 document.getElementById('payBtn').addEventListener('click', async () => {
@@ -143,7 +158,7 @@ document.getElementById('payBtn').addEventListener('click', async () => {
   try {
     const r = await fetch(FN + '/ticket-order', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ event_id: cfg.event.id, items, name, email, website: document.getElementById('hpf').value }),
+      body: JSON.stringify({ event_id: cfg.event.id, items, name, email, website: document.getElementById('hpf').value, discount_code: document.getElementById('discount').value.trim() }),
     });
     const d = await r.json();
     if (!r.ok || d.error) throw new Error(d.error || 'Bestellen mislukt, probeer het opnieuw.');
@@ -152,6 +167,9 @@ document.getElementById('payBtn').addEventListener('click', async () => {
     msg.className = 'msg err'; msg.textContent = err.message;
     btn.disabled = false; btn.textContent = 'Bestellen';
   }
+});
+document.getElementById('discount').addEventListener('input', (e) => {
+  document.getElementById('discountNote').style.display = e.target.value.trim() ? 'block' : 'none';
 });
 load();
 </script>
