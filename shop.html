@@ -68,7 +68,20 @@ input:focus { outline:2px solid var(--gold); }
 </div>
 <script>
 const FN = 'https://snfojphxsbzfewwfbfka.supabase.co/functions/v1';
-const slug = new URLSearchParams(location.search).get('event') || '';
+const params = new URLSearchParams(location.search);
+const slug = params.get('event') || '';
+// Embed-modus: shop als blok op de eigen site van de organisator (iframe).
+// We melden onze hoogte aan de bovenliggende pagina zodat het frame meegroeit.
+const EMBED = params.get('embed') === '1';
+if (EMBED) {
+  document.documentElement.style.background = 'transparent';
+  const style = document.createElement('style');
+  style.textContent = '.wrap{padding:8px 4px 24px} body{background:var(--navy);border-radius:16px}';
+  document.head.appendChild(style);
+  const postHeight = () => parent.postMessage({ entreeShopHeight: document.body.scrollHeight }, '*');
+  new ResizeObserver(postHeight).observe(document.body);
+  setInterval(postHeight, 800);
+}
 const euro = c => '€ ' + (c / 100).toFixed(2).replace('.', ',');
 let cfg = null; const qty = {};
 
@@ -162,7 +175,10 @@ document.getElementById('payBtn').addEventListener('click', async () => {
     });
     const d = await r.json();
     if (!r.ok || d.error) throw new Error(d.error || 'Bestellen mislukt, probeer het opnieuw.');
-    location.href = d.checkout_url;
+    // In een iframe-embed breekt het afrekenen uit het frame (Mollie en de
+    // ticketpagina horen full-page te zijn); klik op Bestellen = user gesture.
+    if (EMBED && window.top) window.top.location.href = d.checkout_url;
+    else location.href = d.checkout_url;
   } catch (err) {
     msg.className = 'msg err'; msg.textContent = err.message;
     btn.disabled = false; btn.textContent = 'Bestellen';

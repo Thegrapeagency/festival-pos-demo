@@ -88,7 +88,13 @@ footer { padding:28px 0 40px; opacity:.6; font-size:13.5px; line-height:1.6; }
     <div class="steps">
       <div class="step"><b>1</b><h4>Maak je account</h4><p>Kies je modules, vul je organisatie en je eerste event in. Geen creditcard nodig.</p></div>
       <div class="step"><b>2</b><h4>Richt je event in</h4><p>Tickettypes met prijzen en capaciteit, of je barproducten en kassa's. Alles zelf te beheren in de portal.</p></div>
-      <div class="step"><b>3</b><h4>Verkoop</h4><p>Deel de link van je ticketshop, koppel je Mollie-account en de verkoop loopt. Aan de deur scan je de QR-codes.</p></div>
+      <div class="step"><b>3</b><h4>Verkoop</h4><p>Deel de link van je ticketshop of embed hem op je eigen site, koppel je Mollie-account en de verkoop loopt. Aan de deur scan je de QR-codes.</p></div>
+    </div>
+    <h2 style="margin-top:40px">Eerlijke prijzen</h2>
+    <div class="steps">
+      <div class="step"><b>€0</b><h4>Ticketing is gratis</h4><p>Geen vaste kosten en geen abonnement. Je koper betaalt €1,00 servicekosten per betaald ticket; gratis tickets en gastenlijsten kosten helemaal niets.</p></div>
+      <div class="step"><b>€9+</b><h4>Modules per maand</h4><p>Productiemodules zoals draaiboek, crew, accreditatie en programma vanaf €9 per maand per module. Maandelijks opzegbaar, geen contracten.</p></div>
+      <div class="step"><b>0%</b><h4>Van jouw omzet</h4><p>Het ticketgeld gaat rechtstreeks via je eigen Mollie-account naar jouw rekening. Wij zitten nooit tussen jou en je geld in.</p></div>
     </div>
   </div>
 </section>
@@ -98,18 +104,18 @@ footer { padding:28px 0 40px; opacity:.6; font-size:13.5px; line-height:1.6; }
     <h2>Maak je account</h2>
     <div class="card">
       <form id="signupForm">
-        <label>Welke modules wil je gebruiken? (later altijd aan te passen)</label>
+        <label>Welke modules wil je gebruiken? (later altijd aan te passen, maandelijks opzegbaar)</label>
         <div class="modpick">
-          <label class="pick on"><input type="checkbox" name="modules" value="ticketing" checked><span><b>🎟️ Ticketing</b><small>Ticketshop, QR-tickets, iDEAL</small></span></label>
-          <label class="pick on"><input type="checkbox" name="modules" value="pos" checked><span><b>🍷 Kassa (POS)</b><small>Bar-kassa's, voorraad, dashboards</small></span></label>
-          <label class="pick"><input type="checkbox" name="modules" value="draaiboek"><span><b>📋 Draaiboek</b><small>Je eventdag minuut voor minuut</small></span></label>
-          <label class="pick"><input type="checkbox" name="modules" value="crew"><span><b>👷 Crew &amp; productie</b><small>Crewlijst, rooster, catering</small></span></label>
-          <label class="pick"><input type="checkbox" name="modules" value="programma"><span><b>🎤 Programma</b><small>Line-up en artist advancing</small></span></label>
-          <label class="pick"><input type="checkbox" name="modules" value="gasten"><span><b>🥂 Gastenlijst</b><small>VIP en pers, gratis QR-tickets</small></span></label>
-          <label class="pick"><input type="checkbox" name="modules" value="accreditatie"><span><b>🪪 Accreditatie</b><small>Toegangszones en passen</small></span></label>
-          <label class="pick"><input type="checkbox" name="modules" value="leveranciers"><span><b>🚚 Leveranciers</b><small>Productie-advancing en check-in</small></span></label>
-          <label class="pick"><input type="checkbox" name="modules" value="standhouders"><span><b>🏪 Partners</b><small>Eigen logins voor standhouders en foodtrucks</small></span></label>
-          <label class="pick"><input type="checkbox" name="modules" value="marketing"><span><b>📣 Marketing</b><small>Campagnelinks en Meta Pixel</small></span></label>
+          <label class="pick on"><input type="checkbox" name="modules" value="ticketing" checked><span><b>🎟️ Ticketing · gratis</b><small>Ticketshop, QR-tickets, iDEAL. Je koper betaalt €1 servicekosten per ticket</small></span></label>
+          <label class="pick on"><input type="checkbox" name="modules" value="pos" checked><span><b>🍷 Kassa (POS) · €29 p/m</b><small>Bar-kassa's, voorraad, dashboards</small></span></label>
+          <label class="pick"><input type="checkbox" name="modules" value="draaiboek"><span><b>📋 Draaiboek · €9 p/m</b><small>Je eventdag minuut voor minuut</small></span></label>
+          <label class="pick"><input type="checkbox" name="modules" value="crew"><span><b>👷 Crew &amp; productie · €15 p/m</b><small>Crewlijst, rooster, catering</small></span></label>
+          <label class="pick"><input type="checkbox" name="modules" value="programma"><span><b>🎤 Programma · €15 p/m</b><small>Line-up en artist advancing</small></span></label>
+          <label class="pick"><input type="checkbox" name="modules" value="gasten"><span><b>🥂 Gastenlijst · €9 p/m</b><small>VIP en pers, gratis QR-tickets</small></span></label>
+          <label class="pick"><input type="checkbox" name="modules" value="accreditatie"><span><b>🪪 Accreditatie · €15 p/m</b><small>Toegangszones en passen</small></span></label>
+          <label class="pick"><input type="checkbox" name="modules" value="leveranciers"><span><b>🚚 Leveranciers · €9 p/m</b><small>Productie-advancing en check-in</small></span></label>
+          <label class="pick"><input type="checkbox" name="modules" value="standhouders"><span><b>🏪 Partners · €19 p/m</b><small>Eigen logins voor standhouders en foodtrucks</small></span></label>
+          <label class="pick"><input type="checkbox" name="modules" value="marketing"><span><b>📣 Marketing · €9 p/m</b><small>Campagnelinks en Meta Pixel</small></span></label>
         </div>
         <label for="org">Naam van je organisatie</label>
         <input type="text" id="org" required maxlength="80" placeholder="Bijv. Stichting Zomerfeest" />
