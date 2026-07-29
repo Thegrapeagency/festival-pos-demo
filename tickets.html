@@ -5,34 +5,46 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="robots" content="noindex" />
 <title>Je tickets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
 <style>
-:root { --navy:#0c1c2d; --navy2:#13314d; --gold:#c4841d; }
+:root { --gold:#0E9F6E; }
 * { box-sizing:border-box; }
-body { margin:0; font-family:system-ui,-apple-system,'Segoe UI',sans-serif; background:var(--navy); color:#fff; }
-.wrap { max-width:560px; margin:0 auto; padding:28px 18px 60px; }
-h1 { margin:0 0 6px; font-size:clamp(24px,6vw,32px); }
-.sub { opacity:.75; margin:0 0 24px; line-height:1.5; }
-.state { text-align:center; padding:60px 0; opacity:.8; line-height:1.6; }
-.spin { font-size:26px; }
-.ticket { background:#fff; color:#14202e; border-radius:16px; margin-bottom:16px; overflow:hidden; }
-.ticket .head { background:var(--navy2); color:#fff; padding:12px 18px; display:flex; justify-content:space-between; align-items:center; }
-.ticket .head b { font-size:15px; }
-.ticket .head .st { font-size:12px; background:rgba(255,255,255,.15); border-radius:99px; padding:3px 10px; }
-.ticket .head .st.used { background:rgba(220,120,60,.4); }
-.ticket .body { display:flex; align-items:center; gap:18px; padding:16px 18px; }
-.ticket .qr { width:120px; height:120px; flex:0 0 auto; }
-.ticket .meta { font-size:14px; line-height:1.6; }
-.ticket .code { font-family:ui-monospace,monospace; font-weight:700; letter-spacing:1px; }
-.panel { background:var(--navy2); border:1px solid rgba(255,255,255,.14); border-radius:16px; padding:20px; margin-top:18px; font-size:14.5px; line-height:1.6; }
-.row { display:flex; justify-content:space-between; padding:3px 0; opacity:.9; }
-a { color:var(--gold); }
-.btn { display:inline-block; margin-top:10px; background:var(--gold); color:var(--navy); font-weight:800; padding:12px 20px; border-radius:12px; border:0; cursor:pointer; text-decoration:none; }
+body { margin:0; font-family:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif; background:#ffffff; color:#222222; -webkit-font-smoothing:antialiased; }
+.wrap { max-width:560px; margin:0 auto; padding:32px 20px 64px; }
+h1 { margin:0 0 6px; font-size:clamp(24px,6vw,32px); font-weight:800; letter-spacing:-0.02em; color:#222; }
+.sub { color:#6A6A6A; margin:0 0 24px; line-height:1.6; }
+:focus-visible { outline:2px solid #222; outline-offset:2px; }
+.state { text-align:center; padding:72px 0; color:#6A6A6A; line-height:1.7; font-size:15px; }
+.spin { width:34px; height:34px; margin:0 auto 16px; border-radius:50%; border:3px solid #EBEBEB; border-top-color:var(--gold); animation:spin .9s linear infinite; }
+@keyframes spin { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .spin { animation-duration:2.4s; } }
+.ticket { background:#ffffff; color:#222; border:1px solid #EBEBEB; border-radius:16px; margin-bottom:16px; overflow:hidden; box-shadow:0 1px 2px rgba(0,0,0,.08); transition:transform .2s ease, box-shadow .2s ease; }
+.ticket:hover { transform:translateY(-2px); box-shadow:0 6px 16px rgba(0,0,0,.12); }
+.ticket .head { background:#F7F7F7; border-bottom:1px solid #EBEBEB; color:#222; padding:14px 18px; display:flex; justify-content:space-between; align-items:center; gap:10px; }
+.ticket .head b { font-size:15px; font-weight:700; letter-spacing:-0.01em; }
+.ticket .head .st { font-size:12px; font-weight:600; background:#E9F8F3; color:#0F7B5F; border-radius:999px; padding:4px 12px; white-space:nowrap; }
+.ticket .head .st.used { background:#F7F7F7; color:#6A6A6A; border:1px solid #EBEBEB; }
+.ticket .body { display:flex; align-items:center; gap:20px; padding:18px; }
+.ticket .qr { width:132px; height:132px; flex:0 0 auto; }
+.ticket .qr svg { display:block; width:100%; height:100%; }
+.ticket .meta { font-size:14px; line-height:1.7; color:#6A6A6A; }
+.ticket .meta > div:first-child { color:#222; font-weight:600; }
+.ticket .code { font-family:ui-monospace,monospace; font-weight:700; letter-spacing:1px; color:#222; background:#F7F7F7; border-radius:8px; padding:3px 8px; display:inline-block; margin-top:4px; }
+.panel { background:#ffffff; border:1px solid #EBEBEB; border-radius:16px; padding:22px; margin-top:20px; font-size:14.5px; line-height:1.6; box-shadow:0 1px 2px rgba(0,0,0,.08); }
+.row { display:flex; justify-content:space-between; padding:4px 0; color:#6A6A6A; }
+a { color:var(--gold); font-weight:600; }
+a:hover { text-decoration:underline; }
+.btn { display:inline-block; margin-top:12px; background:var(--gold); background:linear-gradient(90deg, color-mix(in srgb, var(--gold) 80%, #34D399), color-mix(in srgb, var(--gold) 70%, #044E32)); color:#fff; font-weight:700; padding:14px 22px; border-radius:12px; border:0; cursor:pointer; text-decoration:none; transition:transform .15s ease, box-shadow .15s ease, filter .15s ease; }
+.btn:hover { box-shadow:0 6px 16px rgba(0,0,0,.15); filter:brightness(1.04); }
+.btn:active { transform:scale(.98); }
 </style>
 </head>
 <body>
 <div class="wrap">
-  <div id="loading" class="state"><div class="spin">⏳</div>Bestelling ophalen…</div>
-  <div id="pending" class="state" style="display:none"><div class="spin">💳</div>Je betaling wordt nog verwerkt.<br/>Dit scherm ververst vanzelf.</div>
+  <div id="loading" class="state"><div class="spin"></div>Bestelling ophalen…</div>
+  <div id="pending" class="state" style="display:none"><div class="spin"></div>Je betaling wordt nog verwerkt.<br/>Dit scherm ververst vanzelf.</div>
   <div id="failed" class="state" style="display:none">Deze bestelling is niet afgerond.<br/><a id="retry" href="#">Terug naar de shop</a></div>
   <div id="notfound" class="state" style="display:none">Geen bestelling gevonden.<br/>Controleer de link uit je bevestiging.</div>
   <div id="paid" style="display:none">
@@ -40,7 +52,7 @@ a { color:var(--gold); }
     <p class="sub">Bestelling van <span id="buyer"></span>. Laat aan de deur de QR-code scannen. Bewaar deze link goed: dit ÍS je ticket.</p>
     <p class="sub" id="note" style="display:none"></p>
     <div id="list"></div>
-    <div class="panel"><div id="lines"></div><div class="row" style="font-weight:800;border-top:1px solid rgba(255,255,255,.2);margin-top:6px;padding-top:8px"><span>Totaal</span><span id="total"></span></div></div>
+    <div class="panel"><div id="lines"></div><div class="row" style="font-weight:800;color:#222;border-top:1px solid #EBEBEB;margin-top:8px;padding-top:10px"><span>Totaal</span><span id="total"></span></div></div>
   </div>
 </div>
 <script src="./qrcode.min.js"></script>
