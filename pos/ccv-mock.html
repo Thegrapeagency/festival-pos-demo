@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>CCV SoftPOS (nagemaakt)</title>
+<style>
+  :root { --bg: #0e1726; --card: #17233a; --ink: #eef2f8; --muted: #9aa7bd; --ok: #2f9e62; --bad: #c8383f; --line: #26344f; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+  main { max-width: 440px; margin: 0 auto; padding: 18px 16px 40px; }
+  .tag { display: inline-block; font-size: 12px; letter-spacing: .08em; text-transform: uppercase; background: #f2b33d; color: #1b1300; padding: 3px 8px; border-radius: 6px; font-weight: 700; }
+  h1 { font-size: 22px; margin: 12px 0 2px; }
+  .sub { color: var(--muted); margin: 0 0 16px; font-size: 14px; }
+  .amount { background: var(--card); border: 1px solid var(--line); border-radius: 16px; padding: 18px; text-align: center; margin-bottom: 16px; }
+  .amount .big { font-size: 34px; font-weight: 700; }
+  .amount .tap { color: var(--muted); font-size: 14px; margin-top: 4px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 18px 0 8px; }
+  button { width: 100%; text-align: left; border: 1px solid var(--line); background: var(--card); color: var(--ink); border-radius: 12px; padding: 13px 14px; margin: 0 0 8px; font: inherit; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; align-items: center; }
+  button:hover { border-color: #3a4d72; }
+  button.ok { background: var(--ok); border-color: var(--ok); font-weight: 600; }
+  button .cert { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  button.ok .cert { color: #d9f5e5; }
+  button:disabled { opacity: .5; }
+  .note { color: var(--muted); font-size: 13px; margin-top: 16px; }
+  .err { color: #ff9ca1; margin-top: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <span class="tag">Test, geen echt geld</span>
+  <h1 id="title">CCV SoftPOS</h1>
+  <p class="sub" id="sub"></p>
+  <div id="amount" class="amount" hidden><div class="big" id="amt"></div><div class="tap">Houd de kaart tegen de achterkant van de telefoon</div></div>
+  <div id="list"></div>
+  <p class="err" id="err" hidden></p>
+  <p class="note">Dit is een nagemaakte CCV SoftPOS-app om de kassa te testen zonder CCV-toegang. Elke knop speelt een
+    scenario uit de CCV-certificering na (SP001 t/m SP008) en stuurt je terug naar de kassa zoals de echte app dat doet.</p>
+</main>
+<script>
+(() => {
+  const q = new URLSearchParams(location.search)
+  const mode = q.get('mode')
+  const cb = q.get('callback') || ''
+  const fn = (q.get('fn') || '') + '/ccv-mock'
+  const $ = (id) => document.getElementById(id)
+
+  // terug naar de kassa, precies zoals de echte app: callback?status=... of (bij een gekilde app) helemaal niets
+  function back(params) {
+    if (!cb) { $('err').hidden = false; $('err').textContent = 'Geen callback-URL meegegeven.'; return }
+    if (!params) { location.href = cb; return }
+    const u = new URL(cb)
+    for (const [k, v] of Object.entries(params)) u.searchParams.set(k, v)
+    location.href = u.toString()
+  }
+  async function server(path, body) {
+    const r = await fetch(fn + path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) })
+    const j = await r.json().catch(() => ({}))
+    if (!r.ok) throw new Error(j.error || ('HTTP ' + r.status))
+    return j
+  }
+  const FAIL = (failureCode, failure, reason) => Object.assign({ status: 'FAILED', failureCode: String(failureCode), failure }, reason ? { reason } : {})
+
+  let scenarios = []
+  if (mode === 'transaction') {
+    const mtx = q.get('methodTransactionId')
+    $('title').textContent = 'Betalen'
+    $('sub').textContent = 'Transactie ' + mtx
+    scenarios = [
+      { label: 'Kaart gepresenteerd: betaald', cert: 'SP002', ok: true, outcome: 'success', ret: { status: 'SUCCEEDED' } },
+      { label: 'Geannuleerd in de app', cert: 'SP004', outcome: 'cancelled', ret: FAIL(13001, 'TRANSACTION_CANCELLED', 'USER_CANCELLED_PIN_PAD') },
+      { label: 'Geweigerd door de bank', cert: 'SP004', outcome: 'declined', ret: FAIL(13002, 'TRANSACTION_NOT_AUTHORIZED', 'ONLINE_DECLINED') },
+      { label: 'App gesloten, na 30 s terug', cert: 'SP005', outcome: 'closed', ret: FAIL(13001, 'TRANSACTION_CANCELLED', 'TRANSACTION_WAS_TERMINATED') },
+      { label: 'App gekild (geen callback)', cert: 'SP006', outcome: 'killed', ret: null },
+      { label: 'App gekild, maar wél betaald', cert: 'extra', outcome: 'killed_paid', ret: null },
+      { label: 'CCV-app niet (meer) geïnstalleerd', cert: 'SP007', outcome: 'not_installed', ret: FAIL(10000, 'SOFTPOS_NOT_INSTALLED') },
+      { label: 'App-data gewist', cert: 'SP008', outcome: 'data_cleared', ret: FAIL(13000, 'TRANSACTION_ERROR', 'TERMINAL_NOT_INSTALLED') },
+      { label: 'NFC staat uit', cert: 'extra', outcome: 'stuck', ret: FAIL(13000, 'TRANSACTION_ERROR', 'NFC_NOT_ENABLED_ERROR') },
+      { label: 'Geen internet', cert: 'extra', outcome: 'network', ret: FAIL(13000, 'TRANSACTION_ERROR', 'NETWORK_ERROR') },
+    ].map((s) => ({ ...s, run: () => server('/mock/complete', { methodTransactionId: mtx, outcome: s.outcome }) }))
+    $('amount').hidden = false
+    $('amt').textContent = 'Kaart aanbieden'
+  } else if (mode === 'installation') {
+    const data = q.get('data')
+    $('title').textContent = 'Terminal installeren'
+    $('sub').textContent = 'Eenmalige koppeling van deze telefoon'
+    scenarios = [
+      { label: 'Installatie gelukt', cert: 'SP001', ok: true, outcome: 'success', ret: { status: 'SUCCEEDED' } },
+      { label: 'CCV-app niet geïnstalleerd', cert: 'SP003', outcome: null, ret: FAIL(11000, 'SOFTPOS_NOT_INSTALLED') },
+      { label: 'NFC staat uit', cert: 'extra', outcome: 'failed', ret: FAIL(11006, 'NFC_NOT_ENABLED_ERROR') },
+      { label: 'Ontwikkelaarsopties staan aan', cert: 'extra', outcome: 'failed', ret: FAIL(11009, 'DEV_OPTIONS_ENABLED') },
+      { label: 'Geen internet', cert: 'extra', outcome: 'failed', ret: FAIL(11004, 'NETWORK_ERROR') },
+    ].map((s) => ({ ...s, run: () => (s.outcome ? server('/mock/install-complete', { data, outcome: s.outcome }) : Promise.resolve()) }))
+  } else if (mode === 'isReadyForTransaction') {
+    $('title').textContent = 'Klaar om te pinnen?'
+    $('sub').textContent = 'Terminal ' + (q.get('terminalId') || '')
+    scenarios = [
+      { label: 'Klaar om te pinnen', cert: 'check', ok: true, ret: { status: 'SUCCEEDED' } },
+      { label: 'Terminal niet geïnstalleerd', cert: 'check', ret: FAIL(16001, 'TERMINAL_NOT_INSTALLED') },
+      { label: 'NFC staat uit', cert: 'check', ret: FAIL(16006, 'NFC_NOT_ENABLED_ERROR') },
+      { label: 'CCV-app niet geïnstalleerd', cert: 'check', ret: FAIL(16010, 'SOFTPOS_NOT_INSTALLED') },
+    ].map((s) => ({ ...s, run: () => Promise.resolve() }))
+  } else {
+    $('title').textContent = 'Onbekende actie'
+    $('sub').textContent = 'mode=' + mode
+  }
+
+  const list = $('list')
+  for (const s of scenarios) {
+    const b = document.createElement('button')
+    if (s.ok) b.className = 'ok'
+    b.innerHTML = '<span></span><span class="cert"></span>'
+    b.firstChild.textContent = s.label
+    b.lastChild.textContent = s.cert
+    b.onclick = async () => {
+      list.querySelectorAll('button').forEach((x) => (x.disabled = true))
+      try { await s.run(); back(s.ret) } catch (e) {
+        $('err').hidden = false
+        $('err').textContent = 'Fout: ' + e.message
+        list.querySelectorAll('button').forEach((x) => (x.disabled = false))
+      }
+    }
+    list.appendChild(b)
+  }
+})()
+</script>
+</body>
+</html>
