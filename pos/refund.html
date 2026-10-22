@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Terugbetaling | Nacht van de Wijn</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+<style>
+  :root { --paper: #f4ecd9; --card: #fffdf9; --ink: #15173a; --muted: #6b6b7b; --bordeaux: #8c2f39; --line: #e6dcc6; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--ink); font: 17px/1.55 Fraunces, Georgia, serif; }
+  main { max-width: 460px; margin: 0 auto; padding: 22px 16px 40px; }
+  .card { background: var(--card); border-radius: 16px; padding: 22px 20px; box-shadow: 0 2px 10px rgba(21,23,58,.06); }
+  h1 { font-size: 24px; margin: 0 0 6px; }
+  .bedrag { font-size: 38px; font-weight: 600; margin: 8px 0 2px; }
+  .sub { color: var(--muted); margin: 0 0 18px; font-size: 15px; }
+  label { display: block; font: 600 14px Inter, sans-serif; margin: 14px 0 6px; }
+  input { width: 100%; font: 17px Inter, sans-serif; padding: 13px 12px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+  button { width: 100%; margin-top: 20px; padding: 15px; border: 0; border-radius: 12px; background: var(--ink); color: #fff; font: 600 17px Inter, sans-serif; }
+  button:disabled { opacity: .5; }
+  .fout { color: var(--bordeaux); font: 15px Inter, sans-serif; margin-top: 12px; }
+  .klaar { text-align: center; }
+  .klaar .vink { font-size: 52px; color: #1f7a4a; line-height: 1; }
+  .klein { color: var(--muted); font-size: 13px; margin-top: 16px; }
+</style>
+</head>
+<body>
+<main><div class="card" id="kaart"><p class="sub">Even laden…</p></div></main>
+<script>
+(() => {
+  const FN = 'https://snfojphxsbzfewwfbfka.supabase.co/functions/v1/refund-request'
+  const token = new URLSearchParams(location.search).get('t') || ''
+  const kaart = document.getElementById('kaart')
+  const euro = (c) => '€ ' + (c / 100).toFixed(2).replace('.', ',')
+  const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]))
+  async function api(body) {
+    const r = await fetch(FN, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ token, ...body }) })
+    return r.json().catch(() => ({ error: 'Er ging iets mis. Probeer het opnieuw.' }))
+  }
+  function klaar(einde, bedrag) {
+    kaart.innerHTML = `<div class="klaar"><div class="vink">✓</div><h1>Gelukt</h1>
+      <p>We maken <strong>${euro(bedrag)}</strong> over naar je rekening eindigend op <strong>${esc(einde)}</strong>. Dat doen we binnen twee weken na het festival.</p>
+      <p class="klein">Je krijgt ook een bevestiging per mail.</p></div>`
+  }
+  function formulier(info) {
+    kaart.innerHTML = `<h1>Je krijgt geld terug</h1>
+      <div class="bedrag">${euro(info.amount_cents)}</div>
+      <p class="sub">van ${esc(info.merchant)}. Vul je gegevens in, dan maken we het bedrag over.</p>
+      <form id="f">
+        <label for="n">Naam rekeninghouder</label><input id="n" autocomplete="name" required>
+        <label for="i">IBAN</label><input id="i" autocomplete="off" placeholder="NL00 BANK 0123 4567 89" required>
+        <label for="e">E-mailadres</label><input id="e" type="email" autocomplete="email" required>
+        <button id="b">Versturen</button>
+        <p class="fout" id="fout" hidden></p>
+      </form>
+      <p class="klein">We gebruiken je gegevens alleen voor deze terugbetaling.</p>`
+    document.getElementById('f').addEventListener('submit', async (ev) => {
+      ev.preventDefault()
+      const b = document.getElementById('b'), fout = document.getElementById('fout')
+      b.disabled = true; fout.hidden = true
+      const r = await api({ action: 'submit', name: n.value, iban: i.value, email: e.value })
+      if (r.ok) return klaar(r.iban_einde, info.amount_cents)
+      fout.textContent = r.error || 'Er ging iets mis. Probeer het opnieuw.'; fout.hidden = false; b.disabled = false
+    })
+  }
+  ;(async () => {
+    if (!/^[a-f0-9]{32}$/.test(token)) { kaart.innerHTML = '<h1>Deze link klopt niet</h1><p class="sub">Vraag aan de bar een nieuwe code.</p>'; return }
+    const info = await api({ action: 'get' })
+    if (info.error) { kaart.innerHTML = `<h1>Deze link werkt niet</h1><p class="sub">${esc(info.error)}</p>`; return }
+    if (info.status === 'exported' || info.status === 'paid') { kaart.innerHTML = `<h1>Wordt al uitbetaald</h1><p class="sub">Je terugbetaling van ${euro(info.amount_cents)} is al in behandeling.</p>`; return }
+    if (info.status === 'cancelled') { kaart.innerHTML = '<h1>Geannuleerd</h1><p class="sub">Deze terugbetaling is ingetrokken. Neem contact op met de organisatie.</p>'; return }
+    formulier(info)
+    if (info.ingevuld) document.querySelector('.sub').insertAdjacentHTML('afterend', `<p class="klein">Je hebt al een rekening opgegeven (eindigend op ${esc(info.iban_einde)}). Vul opnieuw in om die te wijzigen.</p>`)
+  })()
+})()
+</script>
+</body>
+</html>
