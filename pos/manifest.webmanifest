@@ -1,15 +1,25 @@
 {
-  "name": "Kassa",
-  "short_name": "Kassa",
+  "name": "Kassa Nacht van de Wijn",
+  "short_name": "NvdW Kassa",
   "description": "Festivalkassa met CCV-pinnen",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#f3ece0",
-  "theme_color": "#15173a",
+  "background_color": "#f9ebcd",
+  "theme_color": "#f9ebcd",
   "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
   ]
 }
