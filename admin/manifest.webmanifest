@@ -1,0 +1,15 @@
+{
+  "name": "Cockpit Nacht van de Wijn",
+  "short_name": "NvdW Cockpit",
+  "description": "Live omzet, partners, terminals en hulpvragen",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f9ebcd",
+  "theme_color": "#f9ebcd",
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" }
+  ]
+}
