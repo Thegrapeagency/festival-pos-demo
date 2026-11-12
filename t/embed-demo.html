@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Voorbeeldsite van een organisator (embed-test)</title>
+<style>
+  /* Bewust een heel andere stijl dan de shop: zo zie je dat de embed niets overneemt of lekt. */
+  body { margin: 0; font-family: Georgia, "Times New Roman", serif; background: #f3ede2; color: #2b2118; line-height: 1.6; }
+  .top { background: #2b2118; color: #f3ede2; }
+  .top .in { max-width: 980px; margin: 0 auto; padding: 14px 20px; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: center; justify-content: space-between; }
+  .top b { font-size: 20px; letter-spacing: .04em; }
+  .top nav { display: flex; gap: 18px; font-size: 15px; font-family: Verdana, sans-serif; align-items: center; }
+  .top nav a { color: inherit; }
+  main { max-width: 980px; margin: 0 auto; padding: 28px 20px 80px; }
+  h1 { font-size: clamp(30px, 6vw, 48px); line-height: 1.1; margin: 10px 0 12px; font-weight: 400; font-style: italic; }
+  h2 { font-size: 24px; margin: 44px 0 10px; font-weight: 400; border-bottom: 1px solid #c9bda8; padding-bottom: 6px; }
+  p { max-width: 62ch; }
+  code { background: #e6dcc9; padding: 1px 5px; font-size: 14px; }
+  .cta { font-family: Verdana, sans-serif; font-size: 15px; font-weight: bold; background: #b3401f; color: #fff; border: 0; padding: 12px 22px; border-radius: 2px; cursor: pointer; }
+  .cta.alt { background: transparent; color: #f3ede2; border: 1px solid #f3ede2; padding: 8px 14px; }
+  .linky { text-decoration: underline; cursor: pointer; color: #b3401f; }
+  .warn { background: #fff3cd; border: 1px solid #e0c36a; padding: 12px 16px; font-family: Verdana, sans-serif; font-size: 14px; }
+  footer { text-align: center; font-size: 13px; color: #7a6b58; padding: 30px 20px; font-family: Verdana, sans-serif; }
+</style>
+</head>
+<body>
+<div class="top"><div class="in">
+  <b>CAFÉ DE GOUDEN KRAAN</b>
+  <nav><a href="#programma">Programma</a><a href="#tickets">Tickets</a><button class="cta alt" id="nav-button">Bestel tickets</button></nav>
+</div></div>
+<main>
+  <p class="warn" id="noslug" hidden>Geef een event mee in het adres, bijvoorbeeld <code>embed-demo.html?e=mijn-event</code>.</p>
+  <h1>Welkom op de site van een organisator</h1>
+  <p>Dit is een nagemaakte website om de embed van Entree te testen. De pagina heeft expres een eigen, afwijkende stijl. Hieronder staan de twee vormen: een knop die de shop in een venster opent en de shop direct in de pagina.</p>
+
+  <h2 id="programma">Vorm 1: een knop</h2>
+  <p>Elk element met <code>data-entree-button</code> opent de shop in een venster over de pagina.</p>
+  <p><button class="cta" id="open-button">Tickets</button> &nbsp; of via <span class="linky" id="open-span">deze tekstlink</span>.</p>
+
+  <h2 id="tickets">Vorm 2: de shop in de pagina</h2>
+  <p>Het blok hieronder is een <code>&lt;div data-entree-shop&gt;</code>. De hoogte groeit vanzelf mee met de inhoud.</p>
+  <div id="inline-shop"></div>
+
+  <h2>Daarna gaat de pagina gewoon verder</h2>
+  <p>Deze tekst staat onder de shop. Als de hoogte goed wordt doorgegeven, schuift deze alinea mee naar beneden zodra je tickets kiest en het formulier verschijnt.</p>
+</main>
+<footer>Voorbeeldsite voor het testen van de Entree-embed</footer>
+
+<script>
+  // De slug komt hier uit het adres; op een echte site staat hij gewoon in de HTML.
+  (function () {
+    var slug = (new URLSearchParams(location.search).get('e') || '').trim();
+    if (!/^[a-z0-9-]{1,80}$/.test(slug)) { document.getElementById('noslug').hidden = false; return; }
+    document.getElementById('inline-shop').setAttribute('data-entree-shop', slug);
+    ['open-button', 'open-span', 'nav-button'].forEach(function (id) {
+      document.getElementById(id).setAttribute('data-entree-button', slug);
+    });
+  })();
+</script>
+<script async src="../embed.js"></script>
+</body>
+</html>
