@@ -1,4 +1,4 @@
-// Entree ticketpagina: t/ticket.html?order=<token>
+// Ticketpagina: t/ticket.html?order=<token>
 (function () {
   'use strict';
   var T = window.EntreeT, el = T.el;
@@ -81,6 +81,8 @@
   function backUrl(o) { return T.linkUrl(o.return_url) || T.linkUrl(o.shop && o.shop.website_url); }
 
   function bare(title, text, retry) {
+    // Nog geen huisstijl bekend (bijvoorbeeld bij een link die niet klopt): de standaardstijl van het platform.
+    if (!document.documentElement.style.getPropertyValue('--e-primary')) window.EntreeBrand.apply({});
     show(true);
     $('brandbar').hidden = true; $('kicker').textContent = ''; $('event-name').textContent = ''; $('meta').hidden = true;
     $('actions').hidden = true; $('tickets').hidden = true; $('summary').hidden = true; $('foot').textContent = '';

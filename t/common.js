@@ -1,10 +1,12 @@
-// Gedeelde hulpjes voor de publieke Entree-pagina's (shop, ticketpagina, scanner).
+// Gedeelde hulpjes voor de publieke pagina's (shop, ticketpagina, scanner).
 // Verwacht window.ENTREE uit ../entree-config.js.
 (function () {
   'use strict';
   var C = window.ENTREE || {};
   var FN = String(C.SUPABASE_URL || '').replace(/\/$/, '') + '/functions/v1/entree';
   var TZ = 'Europe/Amsterdam';
+  // Naam van het platform: staat op één plek, in /entree-config.js.
+  var BRAND_NAME = typeof C.BRAND_NAME === 'string' && C.BRAND_NAME.trim() ? C.BRAND_NAME.trim().slice(0, 40) : 'Tickets';
 
   function headers(json) {
     var h = {};
@@ -124,7 +126,7 @@
   }
 
   window.EntreeT = {
-    FN: FN, api: api, euro: euro, imageUrl: imageUrl, linkUrl: linkUrl, host: host,
+    FN: FN, brandName: BRAND_NAME, api: api, euro: euro, imageUrl: imageUrl, linkUrl: linkUrl, host: host,
     when: when, day: day, time: time, shortMoment: shortMoment, el: el, icon: icon, pixel: pixel, track: track
   };
 })();

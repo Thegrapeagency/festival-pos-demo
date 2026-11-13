@@ -1,8 +1,11 @@
-/* Entree: ticketshop, ticketpagina en scanner.
-   Alle kleuren komen uit de huisstijl-variabelen van brand.js. */
+/* Ticketshop, ticketpagina en scanner.
+   Alle kleuren komen uit de huisstijl-variabelen van brand.js. De waarden hieronder
+   zijn de standaardstijl van het platform en gelden tot brand.js de huisstijl zet.
+   Onderaan staat wat de standaardstijl (html.e-platform) extra krijgt; een shop met
+   een eigen huisstijl krijgt daar niets van. */
 :root {
-  --e-primary: #0e9f6e; --e-on-primary: #ffffff; --e-bg: #f7f7f5; --e-surface: #ffffff;
-  --e-text: #1f1f1f; --e-muted: #6f6f6f; --e-border: #dbdbdb; --e-radius: 14px; --e-radius-sm: 8px;
+  --e-primary: #efa36f; --e-on-primary: #07242a; --e-bg: #faf5ec; --e-surface: #fffdf8;
+  --e-text: #14323a; --e-muted: #5b7176; --e-border: #d9d9d0; --e-radius: 6px; --e-radius-sm: 4px;
   --e-font-heading: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --e-font-body: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --e-soft: color-mix(in srgb, var(--e-text) 5%, var(--e-surface));
@@ -263,6 +266,48 @@ button { cursor: pointer; }
 .manual .input { flex: 1; min-width: 0; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; letter-spacing: .08em; text-transform: uppercase; min-height: 54px; }
 .manual .input::placeholder { letter-spacing: 0; text-transform: none; font-family: var(--e-font-body); }
 .manual .btn { min-height: 54px; }
+
+/* ---------- standaardstijl van het platform (geen eigen huisstijl) ---------- */
+.e-platform { --e-gold: #b8935a; --e-petrol: #1f5f68; }
+.e-platform h1, .e-platform h2, .e-platform h3, .e-platform .type-name, .e-platform .ticket-type, .e-platform .counter strong, .e-platform .result .r-title { font-weight: 400; letter-spacing: .01em; }
+.e-platform :focus-visible { outline: 2px solid var(--e-text); outline-offset: 2px; box-shadow: 0 0 0 5px var(--e-primary); }
+.e-platform .input:focus-visible, .e-platform .select:focus-visible { box-shadow: 0 0 0 3px color-mix(in srgb, var(--e-primary) 45%, transparent); }
+.e-platform .btn { font-weight: 600; letter-spacing: .04em; border-color: color-mix(in srgb, var(--e-primary) 82%, var(--e-text)); }
+.e-platform .btn.ghost { border-color: var(--e-border); letter-spacing: .02em; }
+.e-platform .card, .e-platform .types.list, .e-platform .types.cards .type { box-shadow: inset 0 0 0 4px var(--e-surface), inset 0 0 0 5px color-mix(in srgb, var(--e-gold) 42%, var(--e-surface)), var(--e-shadow); border-color: color-mix(in srgb, var(--e-gold) 55%, var(--e-surface)); }
+.e-platform .types.cards .type.selected { border-color: var(--e-petrol); box-shadow: inset 0 0 0 1px var(--e-petrol), inset 0 0 0 4px var(--e-surface), inset 0 0 0 5px color-mix(in srgb, var(--e-gold) 42%, var(--e-surface)), var(--e-shadow); }
+.e-platform .type.selected { background: color-mix(in srgb, var(--e-primary) 14%, var(--e-surface)); background-clip: padding-box; }
+.e-platform .brandbar .organizer { font-size: 12.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--e-petrol); }
+.e-platform .hero h1 { font-size: clamp(32px, 7vw, 54px); line-height: 1.08; }
+.e-platform .hero h1::after, .e-platform .thead h1::after { content: ''; display: block; width: 132px; height: 5px; margin-top: 18px; border-top: 1px solid var(--e-gold); border-bottom: 1px solid var(--e-gold); }
+.e-platform .sectiontitle { font-family: var(--e-font-body); font-size: 12.5px; font-weight: 600; letter-spacing: .2em; text-transform: uppercase; color: var(--e-petrol); display: flex; align-items: center; gap: 14px; }
+.e-platform .sectiontitle::after { content: ''; flex: 1; height: 4px; border-top: 1px solid color-mix(in srgb, var(--e-gold) 60%, transparent); border-bottom: 1px solid color-mix(in srgb, var(--e-gold) 60%, transparent); }
+.e-platform .type-name { font-size: 20px; }
+.e-platform .type-price { font-weight: 600; }
+.e-platform .checkout h2, .e-platform .summary h2 { font-size: 24px; }
+.e-platform .buyer h3 { font-size: 20px; }
+.e-platform .line.total { border-top: 3px double color-mix(in srgb, var(--e-gold) 60%, var(--e-surface)); }
+.e-platform .thead .kicker, .e-platform .ticket-count { letter-spacing: .2em; font-weight: 600; color: var(--e-petrol); }
+.e-platform .ticket-type { font-size: 26px; }
+.e-platform .ticket-qr { border-color: color-mix(in srgb, var(--e-gold) 55%, var(--e-surface)); }
+.e-platform .stepper output { font-weight: 600; }
+.e-platform .foot { letter-spacing: .04em; }
+.e-platform .foot::before { content: ''; display: block; width: 44px; height: 24px; margin: 0 auto 10px; background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 22' fill='none' stroke='%23d98a52' stroke-width='1.500'%3E%3Cpath d='M13.100 17.100 6.600 14.500M14.700 14.700 6.900 6.900M17.100 13.100 14.500 6.600M20 12.500V1.500M22.900 13.100l2.600-6.500M25.300 14.700l7.800-7.800M26.900 17.100l6.500-2.600M1 20.700h38'/%3E%3Cpath d='M15.500 20a4.500 4.500 0 0 1 9 0z' fill='%23d98a52' stroke='none'/%3E%3C/svg%3E"); }
+.e-platform.embed .foot::before { display: none; }
+
+/* De scanner in de standaardstijl: donker petrol, goed leesbaar bij een deur in het donker. */
+.e-platform.is-scan { --e-bg: #0b2e35 !important; --e-surface: #0f3d45 !important; --e-text: #faf5ec !important; --e-muted: #a9c3c5 !important; --e-border: #2f5c64 !important; --e-shadow: none !important; }
+.e-platform.is-scan body { background: repeating-linear-gradient(45deg, rgba(255,253,248,.03) 0 1px, transparent 1px 22px), repeating-linear-gradient(-45deg, rgba(255,253,248,.03) 0 1px, transparent 1px 22px), #0b2e35; }
+.e-platform.is-scan .scan-head { padding-bottom: 12px; border-bottom: 3px double rgba(184, 147, 90, .7); }
+.e-platform.is-scan .scan-head h1 { font-size: 24px; }
+.e-platform.is-scan .counter strong { color: #efa36f; font-size: 26px; }
+.e-platform.is-scan .result, .e-platform.is-scan .camwrap { box-shadow: 0 0 0 1px rgba(184, 147, 90, .45); }
+.e-platform.is-scan .result { border-color: transparent; }
+.e-platform.is-scan .result.idle .r-title { font-size: 24px; color: var(--e-text); }
+.e-platform.is-scan .result.ok, .e-platform.is-scan .result.used, .e-platform.is-scan .result.bad { box-shadow: none; }
+.e-platform.is-scan .result .r-title { font-weight: 400; }
+.e-platform.is-scan .camwrap { background: #07242a; }
+.e-platform.is-scan .center h1 { font-size: 30px; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; scroll-behavior: auto !important; }

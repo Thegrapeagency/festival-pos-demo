@@ -1,4 +1,4 @@
-// Huisstijl van de organisator toepassen op een Entree-pagina (shop,
+// Huisstijl van de organisator toepassen op een pagina van het platform (shop,
 // ticketpagina, scanner, voorbeeld in het dashboard).
 //
 //   EntreeBrand.apply(shop.brand)            zet CSS-variabelen op <html> en laadt de lettertypes
@@ -7,8 +7,23 @@
 //
 // CSS-variabelen: --e-primary, --e-on-primary, --e-bg, --e-surface, --e-text,
 // --e-muted, --e-border, --e-radius, --e-radius-sm, --e-font-heading, --e-font-body.
+//
+// Heeft de organisator nog geen eigen kleuren of lettertypes gekozen, dan krijgt de
+// pagina de standaardstijl van het platform (DEFAULTS) en de klasse e-platform op
+// <html>; entree.css voegt daar de art-deco-details aan toe. Zodra er een eigen kleur
+// of lettertype is ingesteld, valt die klasse weg en vullen we wat ontbreekt neutraal
+// aan (NEUTRAL): het platform drukt dan geen eigen stijl op de shop.
 (function () {
-  var DEFAULTS = { primary: '#0e9f6e', bg: '#f7f7f5', surface: '#ffffff', text: '#1f1f1f', radius: 14 };
+  // Standaardstijl van het platform. Zelfde kleuren als in platform.css.
+  var DEFAULTS = {
+    primary: '#efa36f', on_primary: '#07242a', bg: '#faf5ec', surface: '#fffdf8', text: '#14323a', radius: 6,
+    font_heading: '"Marcellus", "Optima", "Candara", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif',
+    font_body: '"Jost", "Century Gothic", "Avenir Next", "Avenir", "Futura", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif',
+    fonts_href: 'https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Marcellus&display=swap'
+  };
+  var NEUTRAL = { bg: '#f7f7f5', surface: '#ffffff', text: '#1f1f1f', radius: 14 };
+  var OWN = ['primary', 'bg', 'surface', 'text', 'font_heading', 'font_body'];
+  function isCustom(brand) { return OWN.some(function (k) { return !!brand[k]; }); }
 
   // Google Fonts die we aanbieden. Elk met de gewichten die we nodig hebben.
   var FONTS = [
@@ -38,12 +53,12 @@
     if (!fontOk(name)) return 'system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
     return '"' + name + '", ' + (SERIF.test(name) ? 'Georgia, serif' : 'system-ui, -apple-system, "Segoe UI", sans-serif');
   }
-  function loadFonts(names) {
+  function loadFonts(names, fixedHref) {
     var wanted = names.filter(fontOk).filter(function (n, i, a) { return a.indexOf(n) === i; });
     var id = 'entree-fonts';
     var old = document.getElementById(id);
-    if (!wanted.length) { if (old) old.remove(); return; }
-    var href = 'https://fonts.googleapis.com/css2?' + wanted.map(function (n) {
+    if (!wanted.length && !fixedHref) { if (old) old.remove(); return; }
+    var href = fixedHref || 'https://fonts.googleapis.com/css2?' + wanted.map(function (n) {
       return 'family=' + encodeURIComponent(n).replace(/%20/g, '+') + ':wght@400;600;700';
     }).join('&') + '&display=swap';
     if (old && old.getAttribute('href') === href) return;
@@ -52,6 +67,7 @@
     // Lettertypes zonder die gewichten geven een fout; dan proberen we het zonder gewichten.
     link.onerror = function () {
       link.onerror = null;
+      if (fixedHref) return;
       link.href = 'https://fonts.googleapis.com/css2?' + wanted.map(function (n) {
         return 'family=' + encodeURIComponent(n).replace(/%20/g, '+');
       }).join('&') + '&display=swap';
@@ -63,14 +79,18 @@
   function apply(brand, root) {
     brand = brand || {};
     root = root || document.documentElement;
-    var primary = hex(brand.primary, DEFAULTS.primary);
-    var bg = hex(brand.bg, DEFAULTS.bg);
-    var surface = hex(brand.surface, luminance(bg) > 0.4 ? '#ffffff' : mix('#ffffff', bg, 0.08));
-    var text = hex(brand.text, contrast(bg) === '#ffffff' ? '#f5f5f5' : DEFAULTS.text);
-    var radius = Math.max(0, Math.min(28, parseInt(brand.radius == null ? DEFAULTS.radius : brand.radius, 10) || 0));
+    var custom = isCustom(brand);
+    var base = custom ? NEUTRAL : DEFAULTS;
+    var bg = hex(brand.bg, base.bg);
+    var surface = hex(brand.surface, luminance(bg) > 0.4 ? base.surface : mix('#ffffff', bg, 0.08));
+    var text = hex(brand.text, contrast(bg) === '#ffffff' ? '#f5f5f5' : base.text);
+    // Eigen huisstijl zonder primaire kleur: knoppen in de tekstkleur, dat is altijd zichtbaar en neutraal.
+    var primary = hex(brand.primary, custom ? text : DEFAULTS.primary);
+    var radius = Math.max(0, Math.min(28, parseInt(brand.radius == null ? base.radius : brand.radius, 10) || 0));
     var set = function (k, v) { root.style.setProperty(k, v); };
+    if (root.classList) root.classList.toggle('e-platform', !custom);
     set('--e-primary', primary);
-    set('--e-on-primary', contrast(primary));
+    set('--e-on-primary', custom ? contrast(primary) : DEFAULTS.on_primary);
     set('--e-bg', bg);
     set('--e-surface', surface);
     set('--e-text', text);
@@ -78,11 +98,12 @@
     set('--e-border', mix(text, surface, 0.16));
     set('--e-radius', radius + 'px');
     set('--e-radius-sm', Math.round(radius * 0.6) + 'px');
-    set('--e-font-heading', stack(brand.font_heading || brand.font_body));
-    set('--e-font-body', stack(brand.font_body));
-    loadFonts([brand.font_heading, brand.font_body]);
-    return { primary: primary, bg: bg, surface: surface, text: text, radius: radius };
+    set('--e-font-heading', custom ? stack(brand.font_heading || brand.font_body) : DEFAULTS.font_heading);
+    set('--e-font-body', custom ? stack(brand.font_body) : DEFAULTS.font_body);
+    // Lettertypes alleen laden voor de pagina zelf, niet voor een los element (zoals de contrastcontrole in het dashboard).
+    if (root === document.documentElement) { if (custom) loadFonts([brand.font_heading, brand.font_body]); else loadFonts([], DEFAULTS.fonts_href); }
+    return { primary: primary, bg: bg, surface: surface, text: text, radius: radius, custom: custom };
   }
 
-  window.EntreeBrand = { apply: apply, contrast: contrast, mix: mix, luminance: luminance, FONTS: FONTS, DEFAULTS: DEFAULTS };
+  window.EntreeBrand = { apply: apply, contrast: contrast, mix: mix, luminance: luminance, isCustom: isCustom, FONTS: FONTS, DEFAULTS: DEFAULTS, NEUTRAL: NEUTRAL };
 })();

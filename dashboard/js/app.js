@@ -1,10 +1,11 @@
 // Ingang van het dashboard: routering en het vaste kader.
 import { hasSession, onSessionLost, logout, sessionEmail } from './api.js';
-import { h, icon, toast, spinner, guard } from './ui.js';
-import { S, loadState, loadEvent } from './store.js';
+import { h, icon, toast, spinner, guard, brandMark, BRAND, setTitle } from './ui.js';
+import { S, loadState, loadEvent, showPayouts, isPlatformAdmin } from './store.js';
 import { viewAuth, viewReset, viewWelcome, viewNoOrg, needsWelcome } from './auth.js';
 import { viewHome, viewSettings } from './home.js';
 import { viewEvent } from './event.js';
+import { viewPayouts, viewPlatform } from './payouts.js';
 
 const app = document.getElementById('app');
 const mount = (node) => { app.replaceChildren(node); };
@@ -17,15 +18,18 @@ function shell(content, active) {
   return h('div', { class: 'shell' },
     h('a', { class: 'skip', href: '#main' }, 'Naar de inhoud'),
     h('header', { class: 'top' }, h('div', { class: 'top-in' },
-      h('a', { class: 'logo', href: '#/', 'aria-label': 'Entree, naar je events' }, 'Entree', h('span', null, '.')),
-      h('nav', { class: 'top-nav', 'aria-label': 'Hoofdmenu' }, link('#/', 'Events', 'grid', 'home'), link('#/settings', 'Instellingen', 'settings', 'settings')),
+      h('a', { class: 'logo', href: '#/', 'aria-label': `${BRAND}, naar je events` }, brandMark()),
+      h('nav', { class: 'top-nav', 'aria-label': 'Hoofdmenu' }, link('#/', 'Events', 'grid', 'home'),
+        showPayouts() ? link('#/uitbetalingen', 'Uitbetalingen', 'wallet', 'payouts') : null,
+        link('#/settings', 'Instellingen', 'settings', 'settings'),
+        isPlatformAdmin() ? link('#/platform', 'Platformbeheer', 'shield', 'platform') : null),
       h('div', { class: 'top-right' }, org ? h('span', { class: 'org-name', title: sessionEmail() }, org) : null, out))),
     h('main', { id: 'main', class: 'main', tabindex: '-1' }, content));
 }
 
 export async function doLogout() {
   await logout();
-  S.state = null; S.ev = null; S.evId = null; S.brandDrafts.clear(); S.fieldDrafts.clear();
+  S.state = null; S.ev = null; S.evId = null; S.payoutHistory = false; S.brandDrafts.clear(); S.fieldDrafts.clear();
   location.hash = '#/login';
   render();
   toast('Je bent uitgelogd.');
@@ -41,15 +45,16 @@ async function render() {
   const my = ++seq;
   const fromNav = navigated; navigated = false;
   const hash = location.hash || '#/';
-  if (hash.startsWith('#reset=')) return mount(viewReset(hash.slice(7)));
+  if (hash.startsWith('#reset=')) { setTitle('Nieuw wachtwoord'); return mount(viewReset(hash.slice(7))); }
   const parts = hash.replace(/^#\/?/, '').split('/');
   const page = parts[0] || 'home';
 
   if (['login', 'signup', 'forgot'].includes(page)) {
     if (hasSession()) { location.hash = '#/'; return; }
+    setTitle({ login: 'Inloggen', signup: 'Account maken', forgot: 'Wachtwoord vergeten' }[page]);
     return mount(viewAuth(page));
   }
-  if (!hasSession()) return mount(viewAuth('login'));
+  if (!hasSession()) { setTitle('Inloggen'); return mount(viewAuth('login')); }
 
   if (!S.state) {
     mount(shell(spinner('Je gegevens laden')));
@@ -60,10 +65,22 @@ async function render() {
     if (my !== seq) return;
   }
   if (S.state.role !== 'admin') return mount(viewNoOrg());
-  if (needsWelcome()) return mount(viewWelcome());
+  if (needsWelcome()) { setTitle('Welkom'); return mount(viewWelcome()); }
 
   if (page === 'settings') {
+    setTitle('Instellingen');
     mount(shell(viewSettings(), 'settings'));
+    return;
+  }
+  if (page === 'uitbetalingen') {
+    setTitle('Uitbetalingen');
+    mount(shell(viewPayouts(), 'payouts'));
+    return;
+  }
+  // Platformbeheer bestaat alleen voor platformbeheerders; voor ieder ander is deze route er niet.
+  if (page === 'platform' && isPlatformAdmin()) {
+    setTitle('Platformbeheer');
+    mount(shell(viewPlatform(), 'platform'));
     return;
   }
   if (page === 'event' && parts[1]) {
@@ -78,6 +95,7 @@ async function render() {
       }
       if (my !== seq) return;
     }
+    setTitle(S.ev && S.ev.event ? S.ev.event.name : 'Event');
     mount(shell(viewEvent(tab), 'home'));
     // Bij het openen van een tab met cijfers halen we op de achtergrond verse gegevens op.
     if (fromNav && loadedNow !== id && !['huisstijl', 'vragen'].includes(tab)) {
@@ -89,6 +107,8 @@ async function render() {
     return;
   }
   // home: toon wat we hebben en ververs op de achtergrond
+  if (page !== 'home') { location.replace('#/'); return; }
+  setTitle('Events');
   mount(shell(viewHome(), 'home'));
   try {
     await loadState();
@@ -98,7 +118,7 @@ async function render() {
 
 S.render = render;
 onSessionLost(() => {
-  S.state = null; S.ev = null; S.evId = null;
+  S.state = null; S.ev = null; S.evId = null; S.payoutHistory = false;
   document.querySelectorAll('.modal-back').forEach((m) => m.remove());
   document.body.classList.remove('has-modal');
   render();

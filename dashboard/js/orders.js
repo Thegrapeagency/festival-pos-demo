@@ -1,9 +1,11 @@
 // Tab Bestellingen: zoeken, filteren, detail, terugbetalen en export.
 import { rpc, fn } from './api.js';
-import { h, icon, toast, guard, badge, notice, empty, spinner, openModal, confirmDialog, euro, num, fmtDate, fmtShort, debounce, download } from './ui.js';
+import { h, icon, toast, guard, badge, notice, empty, spinner, openModal, confirmDialog, euro, num, fmtDate, fmtShort, debounce, download, BRAND } from './ui.js';
 import { S, loadEvent, loadState, ticketUrl } from './store.js';
 
 const PAGE = 25;
+// Of deze organisatie zich nu via het platform laat uitbetalen (in plaats van een eigen Mollie-account).
+const viaPlatform = () => !!(S.state && S.state.payments && S.state.payments.payout_mode === 'platform');
 const FILTERS = [['', 'Alle'], ['paid', 'Betaald'], ['refunded', 'Terugbetaald'], ['pending', 'Openstaand'], ['test', 'Test']];
 const STATUS = { paid: ['Betaald', 'green'], refunded: ['Terugbetaald', 'grey'], pending: ['Openstaand', 'amber'], canceled: ['Geannuleerd', 'grey'], expired: ['Verlopen', 'grey'] };
 const SOURCE = { shop: 'Shoplink', embed: 'Shop op je site' };
@@ -106,7 +108,7 @@ function orderModal(id, onChange) {
     const refund = h('button', { class: 'btn btn-danger-ghost', type: 'button', onclick: async () => {
       const free = o.total_cents === 0;
       const yes = await confirmDialog({ title: 'Bestelling terugbetalen', danger: true, confirmLabel: free ? 'Bestelling annuleren' : `${euro(o.total_cents)} terugbetalen`,
-        text: [free ? 'Dit is een gratis bestelling. Er wordt niets teruggeboekt.' : o.is_test ? 'Dit is een testbestelling. Er is niets echt betaald, dus er wordt niets teruggeboekt.' : `We boeken ${euro(o.total_cents)} terug via Mollie naar de rekening van ${o.buyer_name}. Dat is het hele bedrag, inclusief servicekosten.`,
+        text: [free ? 'Dit is een gratis bestelling. Er wordt niets teruggeboekt.' : o.is_test ? 'Dit is een testbestelling. Er is niets echt betaald, dus er wordt niets teruggeboekt.' : `We boeken ${euro(o.total_cents)} terug naar de rekening van ${o.buyer_name}. Dat is het hele bedrag, inclusief servicekosten.`,
           'Alle tickets van deze bestelling worden ongeldig. Dit kun je niet terugdraaien.'] });
       if (!yes) return;
       const r = await guard(refund, () => fn('refund', { order_id: o.id }));
@@ -114,8 +116,9 @@ function orderModal(id, onChange) {
       changed = true;
       await draw();
       if (r.mollie === 'failed') {
-        m.body.prepend(notice('danger', h('strong', null, 'Het terugboeken bij Mollie is niet gelukt. '), 'De bestelling staat op terugbetaald en de tickets zijn ongeldig, maar de koper heeft het geld nog niet terug. Doe de terugbetaling zelf in je Mollie-dashboard.'));
-        toast('Let op: het terugboeken bij Mollie is niet gelukt.', 'err');
+        m.body.prepend(notice('danger', h('strong', null, 'Het terugboeken is niet gelukt. '), 'De bestelling staat op terugbetaald en de tickets zijn ongeldig, maar de koper heeft het geld nog niet terug. ',
+          viaPlatform() ? `Neem contact op met ${BRAND}, dan boeken wij het bedrag voor je terug.` : 'Doe de terugbetaling zelf in je Mollie-dashboard.'));
+        toast('Let op: het terugboeken is niet gelukt.', 'err');
       } else toast(r.mollie === 'ok' ? 'Terugbetaald. Het geld staat binnen een paar werkdagen bij de koper.' : 'Bestelling geannuleerd. Er hoefde niets teruggeboekt te worden.');
     } }, 'Terugbetalen');
 
@@ -130,7 +133,7 @@ function orderModal(id, onChange) {
           o.discount_cents ? row(`Korting${o.discount_code ? ' (' + o.discount_code + ')' : ''}`, '- ' + euro(o.discount_cents)) : null,
           row('Servicekosten', euro(o.fee_cents)),
           row('Totaal', euro(o.total_cents), 'sum-total'),
-          o.fee_cents ? h('p', { class: 'hint' }, `Voor jou: ${euro(o.total_cents - o.fee_cents)}. De servicekosten factureert Entree achteraf.`) : null)),
+          o.fee_cents ? h('p', { class: 'hint' }, `Voor jou: ${euro(o.total_cents - o.fee_cents)}. ${viaPlatform() ? `De servicekosten houdt ${BRAND} in bij de uitbetaling.` : `De servicekosten factureert ${BRAND} achteraf.`}`) : null)),
       custom.length ? h('section', null, h('h3', null, 'Antwoorden'), h('dl', { class: 'answers' }, custom.map(([k, v]) => [h('dt', null, k), h('dd', null, answer(v))]))) : null,
       h('section', null, h('h3', null, `Tickets (${tickets.length})`), tickets.length ? h('ul', { class: 'tk-list' }, tickets) : h('p', { class: 'muted' }, o.status === 'pending' ? 'De tickets worden gemaakt zodra de betaling binnen is.' : 'Bij deze bestelling horen geen tickets.')),
       h('section', { class: 'order-actions' }, o.status === 'paid' ? resend : null, o.status === 'paid' || o.status === 'refunded' ? open : null, o.status === 'paid' ? refund : null)));

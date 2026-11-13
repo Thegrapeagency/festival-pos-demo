@@ -1,4 +1,4 @@
-// Entree scanner voor deurpersoneel: t/scan.html?k=<scanlink-token>
+// Scanner voor deurpersoneel: t/scan.html?k=<scanlink-token>
 (function () {
   'use strict';
   var T = window.EntreeT;
@@ -13,6 +13,8 @@
     $('scanner').hidden = id !== 'scanner';
   }
   function badLink(title, text, retry) {
+    // Nog geen huisstijl bekend (bijvoorbeeld bij een link die niet klopt): de standaardstijl van het platform.
+    if (!document.documentElement.style.getPropertyValue('--e-primary')) window.EntreeBrand.apply({});
     if (title) $('bad-title').textContent = title;
     if (text) $('bad-text').textContent = text;
     $('bad-retry').hidden = !retry;
@@ -21,7 +23,7 @@
   }
 
   function setInfo(d) {
-    if (d.brand) window.EntreeBrand.apply(d.brand);
+    window.EntreeBrand.apply(d.brand || {});
     if (d.event) { $('event-name').textContent = d.event; document.title = 'Scanner | ' + d.event; }
     $('link-label').textContent = d.label || '';
     if (d.counts) $('count').textContent = (d.counts.checked_in || 0) + ' van ' + (d.counts.total || 0);

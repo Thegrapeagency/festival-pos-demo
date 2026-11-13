@@ -1,6 +1,6 @@
 // Inloggen, account maken, wachtwoord vergeten en de welkomststap.
 import { login, signup, logout, fnPublic, rpc, sessionEmail } from './api.js';
-import { h, icon, toast, guard, field, setError, fromLocalInput } from './ui.js';
+import { h, icon, toast, guard, field, setError, fromLocalInput, BRAND, brandMark, ornament, decoRule } from './ui.js';
 import { S, loadState, local } from './store.js';
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
@@ -9,15 +9,17 @@ function frame(card) {
   const step = (n, title, text) => h('li', null, h('span', { class: 'step-n', 'aria-hidden': 'true' }, n), h('div', null, h('strong', null, title), h('p', null, text)));
   return h('div', { class: 'auth' },
     h('main', { class: 'auth-main' },
-      h('a', { class: 'logo', href: '../', 'aria-label': 'Entree, naar de website' }, 'Entree', h('span', null, '.')),
+      h('a', { class: 'logo', href: '../start/', 'aria-label': `${BRAND}, naar de website` }, brandMark()),
       card),
     h('aside', { class: 'auth-side' }, h('div', { class: 'auth-side-in' },
+      ornament('burst'),
       h('h2', null, 'Zelf tickets verkopen, in je eigen huisstijl'),
+      decoRule(),
       h('ol', { class: 'steps' },
         step('1', 'Maak je event en je tickets', 'Prijzen, aantallen, kortingscodes en vragen aan de koper stel je zelf in.'),
         step('2', 'Zet je huisstijl erop', 'Upload je logo of stijlgids. Kleuren en lettertypes nemen we voor je over.'),
         step('3', 'Plak de shop op je site', 'Je krijgt een regel code voor je website en een link voor je socials.')),
-      h('p', { class: 'auth-foot' }, 'Het ticketgeld komt rechtstreeks op je eigen Mollie-rekening. Gratis tickets kosten niets.'))));
+      h('p', { class: 'auth-foot' }, 'Je kiest zelf hoe je betaald wordt: op je eigen Mollie-rekening of elke week een uitbetaling van ons. Gratis tickets kosten niets.'))));
 }
 
 function pwField(label, auto) {
@@ -47,7 +49,7 @@ export function viewAuth(mode) {
         h('p', { class: 'muted' }, 'Als dit adres bij ons bekend is, krijg je binnen een paar minuten een mail met een link om een nieuw wachtwoord te kiezen. De link is een uur geldig.'),
         h('a', { class: 'btn btn-block', href: '#/login' }, 'Terug naar inloggen'));
     } },
-      h('h1', null, 'Wachtwoord vergeten'),
+      h('h1', null, 'Wachtwoord vergeten'), decoRule('is-short'),
       h('p', { class: 'muted' }, 'Vul je e-mailadres in. Je krijgt een link om een nieuw wachtwoord te kiezen.'),
       field('E-mailadres', email), err, btn,
       h('p', { class: 'auth-alt' }, h('a', { href: '#/login' }, 'Terug naar inloggen')));
@@ -80,7 +82,7 @@ export function viewAuth(mode) {
       } catch (ex) { fail(ex.message); }
       finally { btn.disabled = false; btn.classList.remove('is-busy'); }
     } },
-      h('h1', null, 'Maak je account'),
+      h('h1', null, 'Maak je account'), decoRule('is-short'),
       h('p', { class: 'muted' }, 'Gratis en zonder contract. Je kunt direct je eerste event inrichten.'),
       field('Naam van je organisatie', org, { hint: 'Deze naam zien kopers bij je tickets.' }),
       field('E-mailadres', email),
@@ -109,7 +111,7 @@ export function viewAuth(mode) {
     } catch (ex) { fail(ex.message); }
     finally { btn.disabled = false; btn.classList.remove('is-busy'); }
   } },
-    h('h1', null, 'Inloggen'),
+    h('h1', null, 'Inloggen'), decoRule('is-short'),
     h('p', { class: 'muted' }, 'Welkom terug. Log in om je events te beheren.'),
     field('E-mailadres', email), pw.node,
     h('p', { class: 'auth-forgot' }, h('a', { href: '#/forgot' }, 'Wachtwoord vergeten')),
@@ -139,7 +141,7 @@ export function viewReset(token) {
     } catch (ex) { err.textContent = ex.message; err.hidden = false; }
     finally { btn.disabled = false; btn.classList.remove('is-busy'); }
   } },
-    h('h1', null, 'Kies een nieuw wachtwoord'),
+    h('h1', null, 'Kies een nieuw wachtwoord'), decoRule('is-short'),
     h('p', { class: 'muted' }, 'Daarna ben je direct ingelogd.'),
     pw.node, err, btn,
     h('p', { class: 'auth-alt' }, h('a', { href: '#/login' }, 'Terug naar inloggen')));
@@ -151,7 +153,7 @@ export function viewNoOrg() {
     await logout(); S.state = null; location.hash = '#/signup'; S.render();
   }) }, 'Uitloggen en een account maken');
   return frame(h('div', { class: 'auth-card' },
-    h('h1', null, 'Geen organisatie gevonden'),
+    h('h1', null, 'Geen organisatie gevonden'), decoRule('is-short'),
     h('p', { class: 'muted' }, `Je bent ingelogd als ${sessionEmail() || 'dit account'}, maar aan dit account hangt geen organisatie. Dat gebeurt als het account is gemaakt voor iets anders dan ticketverkoop.`),
     h('p', { class: 'muted' }, 'Log uit en maak een nieuw account met een ander e-mailadres. Daarna kun je direct je eerste event inrichten.'),
     btn));
@@ -187,12 +189,14 @@ export function viewWelcome() {
     });
     if (ok) { toast('Je event staat klaar. Voeg nu je tickets toe.'); location.hash = `#/event/${ev.id}/overzicht`; S.render(); }
   } },
-    h('p', { class: 'eyebrow' }, 'Welkom bij Entree'),
+    ornament('burst'),
+    h('p', { class: 'eyebrow' }, `Welkom bij ${BRAND}`),
     h('h1', null, 'Vertel iets over je eerste event'),
+    decoRule('is-short is-center'),
     h('p', { class: 'muted' }, `Je account voor ${S.state.org.name} is klaar. Met deze drie gegevens maken we je event aan. Alles kun je later nog aanpassen.`),
     field('Naam van je event', name),
     field('Wanneer begint het', start, { optional: true }),
     field('Waar is het', loc, { optional: true }),
     btn, h('p', { class: 'auth-alt' }, skip));
-  return h('div', { class: 'auth auth-solo' }, h('main', { class: 'auth-main' }, h('span', { class: 'logo' }, 'Entree', h('span', null, '.')), form));
+  return h('div', { class: 'auth auth-solo' }, h('main', { class: 'auth-main' }, h('span', { class: 'logo' }, brandMark()), form));
 }

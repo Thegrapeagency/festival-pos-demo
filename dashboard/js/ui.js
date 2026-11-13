@@ -27,6 +27,14 @@ function add(el, kids) {
   }
 }
 
+// Naam en woordmerk van het platform (uit /entree-config.js, via ../t/platform.js).
+const P = window.EntreePlatform || { name: 'Tickets', wordmark: () => document.createTextNode('Tickets'), ornament: () => document.createTextNode(''), rule: () => document.createTextNode(''), title: () => {} };
+export const BRAND = P.name;
+export const brandMark = (cls) => P.wordmark(cls);
+export const ornament = (kind, cls) => P.ornament(kind, cls);
+export const decoRule = (cls) => P.rule(cls);
+export const setTitle = (part) => P.title(part ? 'dashboard · ' + part : 'dashboard');
+
 const ICONS = {
   plus: '<path d="M12 5v14M5 12h14"/>',
   check: '<path d="M20 6 9 17l-5-5"/>',
@@ -66,12 +74,15 @@ const ICONS = {
   sparkle: '<path d="m12 3 1.9 5.8L20 10.7l-6.1 1.9L12 18.4l-1.9-5.8L4 10.7l6.1-1.9ZM19 3v4M21 5h-4"/>',
   image: '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/>',
   users: '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/>',
+  bank: '<path d="M3 21h18M5 21V10M19 21V10M9.5 21V10M14.5 21V10M2 10l10-7 10 7Z"/>',
+  wallet: '<path d="M20 12V8H6a2 2 0 0 1 0-4h12v4M4 6v12a2 2 0 0 0 2 2h14v-4M18 12a2 2 0 0 0 0 4h4v-4Z"/>',
+  shield: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/>',
   lock: '<rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>',
 };
 // Iconen zijn vaste tekst uit deze file, nooit gegevens van de server.
 export function icon(name, size = 18) {
   const t = document.createElement('template');
-  t.innerHTML = `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
+  t.innerHTML = `<svg class="ic" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[name] || ''}</svg>`;
   return t.content.firstChild;
 }
 
@@ -189,7 +200,7 @@ export function notice(kind, ...kids) {
   return h('div', { class: 'notice notice-' + kind }, icon(kind === 'warn' || kind === 'danger' ? 'alert' : kind === 'ok' ? 'check' : 'info', 18), h('div', null, kids));
 }
 export function empty(iconName, title, text, action) {
-  return h('div', { class: 'empty' }, h('div', { class: 'empty-ic' }, icon(iconName, 26)), h('h3', null, title), h('p', null, text), action || null);
+  return h('div', { class: 'empty' }, h('div', { class: 'empty-ic' }, icon(iconName, 24)), h('h3', null, title), h('p', null, text), action || null);
 }
 export function spinner(label = 'Laden') {
   return h('div', { class: 'loading', role: 'status' }, h('span', { class: 'spinner' }), h('span', null, label));
@@ -300,6 +311,12 @@ export function qrDownloadPng(text, filename, px = 1024) {
   };
   img.onerror = () => toast('De PNG maken lukte niet. Download de SVG.', 'err');
   img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg);
+}
+// CSV voor Excel: puntkomma's, BOM, en cellen die met een formule-teken beginnen worden onschadelijk gemaakt.
+const csvCell = (v) => { const s = v == null ? '' : String(v); return /[";\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : /^[=+\-@]/.test(s) ? "'" + s : s; };
+export function csvDownload(filename, rows) {
+  const csv = '\ufeff' + rows.map((r) => r.map(csvCell).join(';')).join('\r\n') + '\r\n';
+  download(filename, new Blob([csv], { type: 'text/csv;charset=utf-8' }));
 }
 export function debounce(fn, ms) {
   let t;

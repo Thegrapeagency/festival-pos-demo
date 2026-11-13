@@ -1,4 +1,4 @@
-/* Entree embed: zet de ticketshop op je eigen site.
+/* Embed: zet de ticketshop op je eigen site.
  *
  *   Inline:  <div data-entree-shop="SLUG"></div>
  *   Knop:    <button data-entree-button="SLUG">Tickets</button>

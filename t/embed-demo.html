@@ -33,7 +33,7 @@
 <main>
   <p class="warn" id="noslug" hidden>Geef een event mee in het adres, bijvoorbeeld <code>embed-demo.html?e=mijn-event</code>.</p>
   <h1>Welkom op de site van een organisator</h1>
-  <p>Dit is een nagemaakte website om de embed van Entree te testen. De pagina heeft expres een eigen, afwijkende stijl. Hieronder staan de twee vormen: een knop die de shop in een venster opent en de shop direct in de pagina.</p>
+  <p>Dit is een nagemaakte website om de embed van <span data-brand-name>het ticketplatform</span> te testen. De pagina heeft expres een eigen, afwijkende stijl. Hieronder staan de twee vormen: een knop die de shop in een venster opent en de shop direct in de pagina.</p>
 
   <h2 id="programma">Vorm 1: een knop</h2>
   <p>Elk element met <code>data-entree-button</code> opent de shop in een venster over de pagina.</p>
@@ -46,11 +46,16 @@
   <h2>Daarna gaat de pagina gewoon verder</h2>
   <p>Deze tekst staat onder de shop. Als de hoogte goed wordt doorgegeven, schuift deze alinea mee naar beneden zodra je tickets kiest en het formulier verschijnt.</p>
 </main>
-<footer>Voorbeeldsite voor het testen van de Entree-embed</footer>
+<footer>Voorbeeldsite voor het testen van de embed van <span data-brand-name>het ticketplatform</span></footer>
+
+<script src="../entree-config.js"></script>
 
 <script>
   // De slug komt hier uit het adres; op een echte site staat hij gewoon in de HTML.
   (function () {
+    // De naam van het platform komt uit /entree-config.js.
+    var brand = window.ENTREE && window.ENTREE.BRAND_NAME;
+    if (brand) Array.prototype.forEach.call(document.querySelectorAll('[data-brand-name]'), function (n) { n.textContent = brand; });
     var slug = (new URLSearchParams(location.search).get('e') || '').trim();
     if (!/^[a-z0-9-]{1,80}$/.test(slug)) { document.getElementById('noslug').hidden = false; return; }
     document.getElementById('inline-shop').setAttribute('data-entree-shop', slug);

@@ -107,7 +107,7 @@ export function tabBrand() {
   const warnEl = h('div', { 'aria-live': 'polite' });
   const left = h('div', { class: 'brand-left' });
 
-  const resolved = () => (EB ? EB.apply(payload(draft, []).brand, document.createElement('div')) : { primary: '#0e9f6e', bg: '#f7f7f5', surface: '#ffffff', text: '#1f1f1f' });
+  const resolved = () => (EB ? EB.apply(payload(draft, []).brand, document.createElement('div')) : { primary: '#efa36f', bg: '#faf5ec', surface: '#fffdf8', text: '#14323a' });
   function sync(repost = true) {
     entry.dirty = !same(draft, server);
     stateEl.textContent = entry.dirty ? 'Je hebt onopgeslagen wijzigingen' : 'Alles is opgeslagen';

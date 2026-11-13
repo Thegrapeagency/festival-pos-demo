@@ -1,4 +1,4 @@
-// Entree ticketshop: t/?e=<slug>[&preview=<token>][&embed=1][&code=<kortingscode>][&parent=<adres>]
+// Ticketshop: t/?e=<slug>[&preview=<token>][&embed=1][&code=<kortingscode>][&parent=<adres>]
 (function () {
   'use strict';
   var T = window.EntreeT, el = T.el;
@@ -46,7 +46,7 @@
       notFoundTitle: 'Deze ticketshop bestaat niet (meer)', notFoundText: 'Controleer de link of vraag de organisator om de juiste.',
       errorTitle: 'De shop laden lukte niet', errorText: 'Controleer je internetverbinding en probeer het opnieuw.', retry: 'Opnieuw proberen',
       ticketsCount: '{n} tickets', ticketCount: '1 ticket', continuePay: 'Ga verder naar betalen',
-      foot: 'Tickets van {org}', powered: 'Ticketverkoop via Entree', titleSuffix: 'tickets'
+      foot: 'Tickets van {org}', powered: 'Ticketverkoop via {brand}', titleSuffix: 'tickets'
     },
     en: {
       loading: 'Loading shop', tickets: 'Tickets', yourOrder: 'Your order', codeLabel: 'Discount code', apply: 'Apply',
@@ -75,7 +75,7 @@
       notFoundTitle: 'This ticket shop does not exist (anymore)', notFoundText: 'Check the link or ask the organiser for the right one.',
       errorTitle: 'The shop could not be loaded', errorText: 'Check your internet connection and try again.', retry: 'Try again',
       ticketsCount: '{n} tickets', ticketCount: '1 ticket', continuePay: 'Continue to payment',
-      foot: 'Tickets by {org}', powered: 'Ticketing by Entree', titleSuffix: 'tickets'
+      foot: 'Tickets by {org}', powered: 'Ticketing by {brand}', titleSuffix: 'tickets'
     }
   };
   function t(key, vars) {
@@ -111,6 +111,8 @@
     $('shop').hidden = which !== 'shop';
   }
   function showMessage(title, text, retry) {
+    // Nog geen huisstijl bekend (bijvoorbeeld bij een link die niet klopt): de standaardstijl van het platform.
+    if (!document.documentElement.style.getPropertyValue('--e-primary')) window.EntreeBrand.apply({});
     $('message-title').textContent = title;
     $('message-text').textContent = text;
     var b = $('message-retry');
@@ -162,7 +164,7 @@
     var foot = $('foot'); foot.textContent = '';
     var parts = [];
     if (ev.organizer) parts.push(t('foot', { org: ev.organizer }));
-    parts.push(t('powered'));
+    parts.push(t('powered', { brand: T.brandName }));
     foot.appendChild(document.createTextNode(parts.join(' · ')));
     var mail = shop.contact_email;
     if (mail && /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail)) {

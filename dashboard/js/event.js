@@ -3,7 +3,7 @@
 import { rpc, BASE } from './api.js';
 import { h, icon, toast, guard, field, toggle, setError, badge, notice, empty, openModal, confirmDialog, euro, euroShort, centsToInput, parseEuro, num, intOrNull,
   fmtDate, fmtShort, toLocalInput, fromLocalInput, copyRow, copyText, qrNode, qrDownloadSvg, qrDownloadPng } from './ui.js';
-import { S, loadEvent, loadState, shopUrl, previewUrl, scanUrl, local } from './store.js';
+import { S, loadEvent, loadState, shopUrl, previewUrl, scanUrl, local, payReady } from './store.js';
 import { statusBadge } from './home.js';
 import { tabBrand, brandDirty } from './brand.js';
 import { tabOrders } from './orders.js';
@@ -53,8 +53,10 @@ function checklist() {
     { done: active.length > 0, title: 'Zet minstens één ticket aan', text: active.length ? `${active.length} ${active.length === 1 ? 'ticket staat' : 'tickets staan'} aan.` : 'Maak een ticket met een prijs en een aantal.', tab: 'tickets', cta: 'Tickets inrichten' },
     { done: !!(brand.logo_url || brand.primary), title: 'Stel je huisstijl in', text: 'Upload je logo of stijlgids. Kleuren en lettertypes stellen we voor.', tab: 'huisstijl', cta: 'Huisstijl instellen' },
     paid || !active.length
-      ? { done: d.pay_mode !== 'none', title: 'Koppel je betalingen', text: d.pay_mode === 'test' ? 'Mollie staat in testmodus. Koppel je Live API key om echt te verkopen.' : 'Voor betaalde tickets koppel je je eigen Mollie-account.', href: '#/settings', cta: 'Mollie koppelen' }
-      : { done: true, title: 'Betalingen koppelen is niet nodig', text: 'Je hebt alleen gratis tickets. Voeg je later een betaald ticket toe, koppel dan Mollie.', href: '#/settings', cta: 'Mollie koppelen' },
+      ? { done: payReady(d.pay_mode), title: 'Kies hoe je betaald wilt worden',
+        text: d.pay_mode === 'test' ? 'Mollie staat in testmodus. Koppel je Live API key om echt te verkopen.' : d.pay_mode === 'platform' ? 'Je laat ons wekelijks uitbetalen.' : d.pay_mode === 'live' ? 'Je eigen Mollie-account is gekoppeld.' : 'Voor betaalde tickets kies je tussen een wekelijkse uitbetaling van ons of je eigen Mollie-account.',
+        href: '#/settings', cta: 'Betalingen regelen' }
+      : { done: true, title: 'Betalingen regelen is niet nodig', text: 'Je hebt alleen gratis tickets. Voeg je later een betaald ticket toe, kies dan hoe je betaald wilt worden.', href: '#/settings', cta: 'Betalingen regelen' },
     { done: d.stats.test_orders > 0, title: 'Doe een testbestelling', text: 'Open het voorbeeld van je shop en bestel een ticket. Je betaalt niets en ziet precies wat je koper krijgt.', href: previewUrl(e), ext: true, cta: 'Voorbeeld openen' },
     { done: e.shop_live, title: 'Zet de verkoop live', text: 'Vanaf dat moment kan iedereen met de link tickets kopen.', tab: 'overzicht', cta: null },
     { done: !!local.get(embedKey()), title: 'Zet de shop op je site', text: 'Plak de code op je website of deel de link op je socials.', tab: 'site', cta: 'Code en link bekijken' },
@@ -103,7 +105,7 @@ function liveCard() {
     h('div', null, h('h2', null, 'Je shop staat nog niet open'),
       h('p', null, 'Alleen jij kunt de shop nu zien, via het voorbeeld. Zet hem live als je tickets en huisstijl kloppen.'),
       err === 'no_types' ? notice('warn', h('strong', null, 'Live zetten kan nog niet. '), 'Er staat geen enkel ticket aan. Voeg een ticket toe of zet er een aan. ', h('a', { href: tabHref('tickets') }, 'Naar Tickets')) : null,
-      err === 'no_payments' ? notice('warn', h('strong', null, 'Live zetten kan nog niet. '), 'Je hebt betaalde tickets, maar nog geen betalingen gekoppeld. Koppel eerst je Mollie-account, of maak je tickets gratis. ', h('a', { href: '#/settings' }, 'Mollie koppelen')) : null),
+      err === 'no_payments' ? notice('warn', h('strong', null, 'Live zetten kan nog niet. '), 'Je hebt betaalde tickets, maar je hebt nog niet gekozen hoe je betaald wilt worden. Kies voor een wekelijkse uitbetaling of koppel je eigen Mollie-account. Je kunt je tickets ook gratis maken. ', h('a', { href: '#/settings' }, 'Betalingen regelen')) : null),
     b);
 }
 
@@ -522,8 +524,8 @@ function tabSite() {
           copyRow('Voorbeeldlink', previewUrl(e), { toast: 'Voorbeeldlink gekopieerd', hint: 'Werkt ook als je event nog niet live is. Bestellingen via deze link zijn testbestellingen. Deel hem alleen met je team.' })),
         h('div', { class: 'qr-box' }, qrNode(url, 148),
           h('div', { class: 'row center' },
-            h('button', { class: 'btn btn-sm', type: 'button', onclick: () => qrDownloadPng(url, `entree-${e.slug}-qr.png`) }, icon('download', 15), 'PNG'),
-            h('button', { class: 'btn btn-sm', type: 'button', onclick: () => qrDownloadSvg(url, `entree-${e.slug}-qr.svg`) }, icon('download', 15), 'SVG')),
+            h('button', { class: 'btn btn-sm', type: 'button', onclick: () => qrDownloadPng(url, `${e.slug}-qr.png`) }, icon('download', 15), 'PNG'),
+            h('button', { class: 'btn btn-sm', type: 'button', onclick: () => qrDownloadSvg(url, `${e.slug}-qr.svg`) }, icon('download', 15), 'SVG')),
           h('p', { class: 'hint' }, 'QR-code voor posters en flyers')))),
     h('section', { class: 'card pad' },
       h('h2', null, 'De shop op je eigen website'),
