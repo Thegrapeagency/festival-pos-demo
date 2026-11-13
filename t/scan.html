@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="nl" class="is-scan">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex" />
+<meta name="referrer" content="no-referrer" />
+<title>Scanner</title>
+<link rel="stylesheet" href="entree.css" />
+</head>
+<body>
+<main class="scan" id="scan">
+  <div id="loading" role="status" style="display:grid;place-items:center;min-height:60dvh">
+    <div class="spinner" aria-hidden="true"></div><span class="sr-only">Scanner laden</span>
+  </div>
+
+  <div id="badlink" class="center" hidden>
+    <div>
+      <h1 id="bad-title">Deze scanlink werkt niet</h1>
+      <p id="bad-text">De link is uitgezet of klopt niet. Vraag de organisator om een nieuwe scanlink.</p>
+      <p style="margin-top:18px"><button type="button" class="btn ghost" id="bad-retry" hidden>Opnieuw proberen</button></p>
+    </div>
+  </div>
+
+  <div id="scanner" hidden style="display:contents">
+    <header class="scan-head">
+      <div>
+        <h1 id="event-name"></h1>
+        <div class="label" id="link-label"></div>
+      </div>
+      <div class="counter" aria-live="off">
+        <strong id="count">0 van 0</strong>
+        <span>binnen</span>
+      </div>
+    </header>
+
+    <section class="result idle" id="result" role="status" aria-live="assertive">
+      <div class="r-title" id="r-title">Klaar om te scannen</div>
+      <div class="r-main" id="r-main"></div>
+      <div class="r-sub" id="r-sub"></div>
+      <div class="r-test" id="r-test" hidden>Testbestelling</div>
+    </section>
+
+    <section class="camwrap" aria-label="Camera">
+      <div id="reader"></div>
+      <div class="camstart" id="camstart">
+        <button type="button" class="btn" id="start">Start scannen</button>
+        <p id="cam-msg">Tik om de camera te starten en richt hem op de QR-code van het ticket.</p>
+      </div>
+      <button type="button" class="camstop" id="stop" hidden>Camera uit</button>
+    </section>
+
+    <form class="manual" id="manual" novalidate>
+      <label class="sr-only" for="code">Ticketcode</label>
+      <input class="input" id="code" type="text" maxlength="40" autocomplete="off" autocapitalize="characters" autocorrect="off" spellcheck="false" placeholder="Of typ de code" enterkeyhint="go" />
+      <button type="submit" class="btn" id="check">Controleer</button>
+    </form>
+  </div>
+</main>
+
+<script src="../entree-config.js"></script>
+<script src="brand.js"></script>
+<script src="common.js"></script>
+<script src="html5-qrcode.min.js"></script>
+<script src="scan.js"></script>
+</body>
+</html>

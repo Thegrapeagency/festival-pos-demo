@@ -1,0 +1,51 @@
+/* Het ontwerpsysteem van het platform: art deco, petrol, crème en zacht oranje.
+   Gedeeld door het dashboard en de landingspagina. Kleur, typografie, radius
+   en schaduw pas je hier aan. De standaardstijl van een shop zonder eigen
+   huisstijl gebruikt dezelfde kleuren; die staan in t/brand.js (PLATFORM). */
+:root {
+  /* petrol */
+  --petrol-950:#07242A; --petrol-900:#0B2E35; --petrol-800:#0F3D45; --petrol-700:#17505A; --petrol-600:#1F5F68;
+  --petrol-400:#5B8F97; --petrol-200:#BCD3D5; --petrol-100:#DCE9E8; --petrol-50:#EDF3F1;
+  /* crème en zand */
+  --cream:#FAF5EC; --paper:#FFFDF8; --sand:#F3ECDD; --line:#E7DDC9; --line-strong:#D2C4A6; --gold:#B8935A; --gold-soft:#DCC8A0;
+  /* zacht oranje */
+  --apricot:#EFA36F; --apricot-600:#E8935A; --apricot-200:#F8D2B5; --apricot-100:#FBE7D6; --apricot-ink:#96481A;
+  /* tekst */
+  --ink:#14323A; --ink2:#496166; --ink3:#5F7478;
+  /* signalen */
+  --danger:#B3361B; --danger-soft:#FBE9E2;
+  --amber:#855000; --amber-soft:#FBEFD2;
+  --ok:#1E6B4A; --ok-soft:#DFF0E6;
+  --plum:#6B3F7A; --plum-soft:#F1E8F3;
+  /* vorm */
+  --r:6px; --r-sm:4px; --r-pill:999px;
+  --shadow:0 1px 2px rgba(11,46,53,.06), 0 10px 28px -12px rgba(11,46,53,.22);
+  --shadow-lg:0 24px 60px -18px rgba(7,36,42,.45);
+  /* typografie */
+  --font-display:'Marcellus','Optima','Candara','Palatino Linotype','Book Antiqua',Palatino,Georgia,serif;
+  --font-body:'Jost','Century Gothic','Avenir Next','Avenir','Futura','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+  --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  /* ruitmotief voor donkere vlakken */
+  --lattice:repeating-linear-gradient(45deg, rgba(255,253,248,.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(-45deg, rgba(255,253,248,.035) 0 1px, transparent 1px 22px);
+}
+
+/* ---------- woordmerk: ornament + naam, werkt met elke naam ---------- */
+.wm { display:inline-flex; align-items:center; gap:.55em; font-family:var(--font-display); font-size:21px; font-weight:400; letter-spacing:.2em; text-transform:uppercase; line-height:1; color:inherit; white-space:nowrap; }
+.wm-orn { width:1.75em; height:auto; color:var(--apricot); flex:none; margin-top:-.18em; }
+.wm-name { padding-top:.08em; }
+.wm-stack { flex-direction:column; gap:.5em; }
+.wm-stack .wm-orn { width:2.6em; margin:0; }
+.wm-stack .wm-name { padding-left:.2em; }
+
+/* ---------- ornamenten ---------- */
+.orn { display:block; }
+.orn-burst { width:100%; height:auto; }
+.deco-rule { display:flex; align-items:center; gap:14px; color:var(--gold); }
+.deco-rule::before, .deco-rule::after { content:''; flex:1; height:4px; border-top:1px solid currentColor; border-bottom:1px solid currentColor; opacity:.55; }
+.deco-rule .orn { flex:none; }
+.deco-rule.is-short { max-width:220px; }
+.deco-rule.is-center { margin-left:auto; margin-right:auto; }
+.eyebrow { font-family:var(--font-body); font-size:12.5px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--apricot-ink); }
+/* dubbele lijst, zoals om een affiche */
+.deco-frame { position:relative; }
+.deco-frame::before { content:''; position:absolute; inset:5px; border:1px solid var(--gold-soft); border-radius:calc(var(--r) - 2px); pointer-events:none; }

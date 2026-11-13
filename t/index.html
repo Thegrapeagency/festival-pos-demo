@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex" />
+<title>Tickets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="entree.css" />
+<script>if (/[?&]embed=1(&|$)/.test(location.search)) document.documentElement.className += ' embed';</script>
+</head>
+<body>
+<div id="app">
+  <div class="shell">
+    <div id="banners" aria-live="polite"></div>
+
+    <div id="loading" class="skel-wrap" role="status">
+      <span class="sr-only" data-t="loading">Shop laden</span>
+      <div class="skel" style="height:38px;width:55%"></div>
+      <div class="skel" style="height:18px;width:70%"></div>
+      <div class="skel" style="height:96px;margin-top:26px"></div>
+      <div class="skel" style="height:96px"></div>
+      <div class="skel" style="height:96px"></div>
+    </div>
+
+    <div id="message" class="center" hidden>
+      <div>
+        <h1 id="message-title"></h1>
+        <p id="message-text"></p>
+        <p style="margin-top:18px"><button type="button" class="btn ghost" id="message-retry" hidden></button></p>
+      </div>
+    </div>
+
+    <div id="shop" hidden>
+      <header class="hero">
+        <div class="brandbar" id="brandbar">
+          <img id="logo" alt="" hidden />
+          <span class="organizer" id="organizer"></span>
+        </div>
+        <div class="cover" id="cover-wrap" hidden><img id="cover" alt="" /></div>
+        <h1 id="event-name"></h1>
+        <ul class="meta" id="meta"></ul>
+        <p class="lead" id="intro" hidden></p>
+        <p class="desc" id="description" hidden></p>
+      </header>
+
+      <section class="card notice" id="notice" hidden>
+        <h2 id="notice-title"></h2>
+        <p id="notice-text"></p>
+      </section>
+
+      <div class="cols" id="cols">
+        <section aria-labelledby="types-title">
+          <h2 class="sectiontitle" id="types-title" data-t="tickets">Tickets</h2>
+          <div id="types" class="types list"></div>
+        </section>
+
+        <aside class="card checkout" id="checkout" aria-labelledby="order-title">
+          <h2 id="order-title" data-t="yourOrder">Je bestelling</h2>
+          <div class="lines" id="lines" aria-live="polite"></div>
+
+          <div class="codebox">
+            <form id="code-form" novalidate>
+              <div class="field" style="margin-top:0">
+                <label for="code" data-t="codeLabel">Kortingscode</label>
+                <div class="coderow">
+                  <input class="input" id="code" type="text" maxlength="40" autocomplete="off" autocapitalize="characters" spellcheck="false" />
+                  <button type="submit" class="btn ghost small" id="code-btn" data-t="apply">Toepassen</button>
+                </div>
+              </div>
+            </form>
+            <div class="codechip" id="code-chip" hidden>
+              <span id="code-chip-text"></span>
+              <button type="button" class="linkbtn" id="code-remove" data-t="remove">Verwijderen</button>
+            </div>
+            <div class="fielderr" id="code-msg" role="status" aria-live="polite"></div>
+          </div>
+
+          <form id="order-form" class="buyer" novalidate hidden>
+            <h3 data-t="yourDetails">Je gegevens</h3>
+            <div class="field">
+              <label for="name"><span data-t="name">Naam</span><span class="req" aria-hidden="true">*</span></label>
+              <input class="input" id="name" name="name" type="text" maxlength="120" autocomplete="name" required />
+              <div class="fielderr" id="name-err"></div>
+            </div>
+            <div class="field">
+              <label for="email"><span data-t="email">E-mailadres</span><span class="req" aria-hidden="true">*</span></label>
+              <input class="input" id="email" name="email" type="email" maxlength="254" autocomplete="email" inputmode="email" required />
+              <div class="fielderr" id="email-err"></div>
+              <div class="small muted" style="margin-top:5px" data-t="emailHint">Hier sturen we je tickets naartoe.</div>
+            </div>
+            <div id="fields"></div>
+            <div class="hp" aria-hidden="true">
+              <label for="website">Website</label>
+              <input id="website" name="website" type="text" tabindex="-1" autocomplete="off" />
+            </div>
+            <div class="field" id="terms-wrap">
+              <label class="check"><input type="checkbox" id="terms" /><span id="terms-text"></span></label>
+              <div class="fielderr" id="terms-err"></div>
+            </div>
+            <div class="msg" id="pay-none" hidden></div>
+            <button type="submit" class="btn block submit" id="submit"></button>
+            <div class="msg err" id="order-msg" role="alert"></div>
+            <p class="small" id="fallback" hidden style="margin-top:12px"><a id="fallback-link" target="_top" rel="noopener"></a></p>
+            <p class="paynote"><span id="paynote-icon"></span><span id="paynote"></span></p>
+          </form>
+        </aside>
+      </div>
+
+      <p class="foot" id="foot"></p>
+    </div>
+  </div>
+</div>
+
+<div class="stickybar" id="stickybar" hidden>
+  <div class="sum"><span id="sticky-count"></span><strong id="sticky-total"></strong></div>
+  <button type="button" class="btn" id="sticky-btn" data-t="toCheckout">Verder</button>
+</div>
+
+<script src="../entree-config.js"></script>
+<script src="brand.js"></script>
+<script src="common.js"></script>
+<script src="shop.js"></script>
+</body>
+</html>
