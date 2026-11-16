@@ -31,10 +31,10 @@
 
 /* ---------- woordmerk: ornament + naam, werkt met elke naam ---------- */
 .wm { display:inline-flex; align-items:center; gap:.55em; font-family:var(--font-display); font-size:21px; font-weight:400; letter-spacing:.2em; text-transform:uppercase; line-height:1; color:inherit; white-space:nowrap; }
-.wm-orn { width:1.75em; height:auto; color:var(--apricot); flex:none; margin-top:-.18em; }
+.wm-orn { width:1.5em; height:1.5em; color:var(--apricot); flex:none; }
 .wm-name { padding-top:.08em; }
 .wm-stack { flex-direction:column; gap:.5em; }
-.wm-stack .wm-orn { width:2.6em; margin:0; }
+.wm-stack .wm-orn { width:2.6em; height:2.6em; margin:0; }
 .wm-stack .wm-name { padding-left:.2em; }
 
 /* ---------- ornamenten ---------- */
