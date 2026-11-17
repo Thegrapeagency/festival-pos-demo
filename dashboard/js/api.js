@@ -162,8 +162,9 @@ function fnError(r, body) {
   const code = (body && (body.code || body.error)) || 'http_' + r.status;
   return new ApiError(code, body && sentence(body.error) ? body.error : explain(code));
 }
-export async function fn(action, payload = {}) {
-  const { r, body } = await authed(`${FN}?a=${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+// opts.signal: een AbortSignal om een lang verzoek af te breken (de assistent kan een halve minuut nadenken).
+export async function fn(action, payload = {}, opts = {}) {
+  const { r, body } = await authed(`${FN}?a=${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: opts.signal });
   if (!r.ok) throw fnError(r, body);
   return body || {};
 }

@@ -6,6 +6,7 @@ import { viewAuth, viewReset, viewWelcome, viewNoOrg, needsWelcome } from './aut
 import { viewHome, viewSettings } from './home.js';
 import { viewEvent } from './event.js';
 import { viewPayouts, viewPlatform } from './payouts.js';
+import { assistantSync, assistantReset } from './assistant.js';
 
 const app = document.getElementById('app');
 const mount = (node) => { app.replaceChildren(node); };
@@ -30,6 +31,7 @@ function shell(content, active) {
 export async function doLogout() {
   await logout();
   S.state = null; S.ev = null; S.evId = null; S.payoutHistory = false; S.brandDrafts.clear(); S.fieldDrafts.clear();
+  assistantReset();
   location.hash = '#/login';
   render();
   toast('Je bent uitgelogd.');
@@ -40,8 +42,18 @@ function errorView(e, retry) {
     h('div', { class: 'row center' }, h('button', { class: 'btn btn-primary', type: 'button', onclick: retry }, 'Opnieuw proberen'), h('a', { class: 'btn', href: '#/' }, 'Naar je events')));
 }
 
-let navigated = true;
+// De assistent hoort bij elke ingelogde pagina van een organisator, niet bij inloggen of de welkomststap.
+function assistantAllowed() {
+  const hash = location.hash || '#/';
+  if (hash.startsWith('#reset=') || /^#\/?(login|signup|forgot)\b/.test(hash)) return false;
+  return hasSession() && !!S.state && S.state.role === 'admin' && !needsWelcome();
+}
 async function render() {
+  try { await draw(); } finally { assistantSync(assistantAllowed()); }
+}
+
+let navigated = true;
+async function draw() {
   const my = ++seq;
   const fromNav = navigated; navigated = false;
   const hash = location.hash || '#/';
@@ -119,6 +131,7 @@ async function render() {
 S.render = render;
 onSessionLost(() => {
   S.state = null; S.ev = null; S.evId = null; S.payoutHistory = false;
+  assistantReset();
   document.querySelectorAll('.modal-back').forEach((m) => m.remove());
   document.body.classList.remove('has-modal');
   render();
