@@ -1,4 +1,4 @@
-// Ticketshop: t/?e=<slug>[&preview=<token>][&embed=1][&code=<kortingscode>][&parent=<adres>]
+// Ticketshop: t/?e=<slug>[&preview=<token>][&embed=1][&code=<kortingscode>][&via=<trackinglink>][&parent=<adres>]
 (function () {
   'use strict';
   var T = window.EntreeT, el = T.el;
@@ -8,6 +8,18 @@
   var previewToken = params.get('preview') || '';
   var EMBED = params.get('embed') === '1';
   var parentUrl = T.linkUrl(params.get('parent') || '');
+  // Trackinglink: uit het adres, en bewaard voor de rest van de sessie zodat hij
+  // meegaat bij opnieuw ophalen (kortingscode) en na het herladen van de pagina.
+  var via = (function () {
+    var key = 'entree-via-' + slug;
+    var v = (params.get('via') || '').trim().toLowerCase();
+    if (!/^[a-z0-9-]{2,40}$/.test(v)) v = '';
+    try {
+      if (v) sessionStorage.setItem(key, v);
+      else { v = sessionStorage.getItem(key) || ''; if (!/^[a-z0-9-]{2,40}$/.test(v)) v = ''; }
+    } catch (e) { /* geen opslag (privémodus of embed): alleen voor deze paginaweergave */ }
+    return v;
+  })();
 
   var data = null;          // laatste antwoord van ?a=shop
   var qty = {};             // { type-id: aantal }
@@ -387,7 +399,7 @@
   // ---------- laden ----------
   function load(code, fromCodeForm) {
     if (!/^[a-z0-9-]{1,80}$/.test(slug)) { lang = 'nl'; showMessage(t('notFoundTitle'), t('notFoundText')); return Promise.resolve(); }
-    return T.api('shop', { e: slug, code: code || '', preview: previewToken }).then(function (r) {
+    return T.api('shop', { e: slug, code: code || '', preview: previewToken, via: via }).then(function (r) {
       var d = r.data || {};
       if (r.status === 404 || d.state === 'not_found') { showMessage(t('notFoundTitle'), t('notFoundText')); return; }
       if (!r.ok || (d.state !== 'open' && d.state !== 'offline')) { showMessage(t('errorTitle'), t('errorText'), true); return; }
@@ -492,6 +504,7 @@
     };
     if (previewToken) body.preview = previewToken;
     if (activeCode) body.code = activeCode;
+    if (via) body.via = via;
 
     var btn = $('submit');
     busy = true; btn.disabled = true; btn.textContent = '';

@@ -1,6 +1,6 @@
-// Tab Bestellingen: zoeken, filteren, detail, terugbetalen en export.
+// Tab Bestellingen: zoeken, filteren, detail, ticket overdragen, terugbetalen en export.
 import { rpc, fn } from './api.js';
-import { h, icon, toast, guard, badge, notice, empty, spinner, openModal, confirmDialog, euro, num, fmtDate, fmtShort, debounce, download, BRAND } from './ui.js';
+import { h, icon, toast, guard, field, setError, badge, notice, empty, spinner, openModal, confirmDialog, euro, num, fmtDate, fmtShort, debounce, download, copyText, BRAND } from './ui.js';
 import { S, loadEvent, loadState, ticketUrl } from './store.js';
 
 const PAGE = 25;
@@ -8,12 +8,24 @@ const PAGE = 25;
 const viaPlatform = () => !!(S.state && S.state.payments && S.state.payments.payout_mode === 'platform');
 const FILTERS = [['', 'Alle'], ['paid', 'Betaald'], ['refunded', 'Terugbetaald'], ['pending', 'Openstaand'], ['test', 'Test']];
 const STATUS = { paid: ['Betaald', 'green'], refunded: ['Terugbetaald', 'grey'], pending: ['Openstaand', 'amber'], canceled: ['Geannuleerd', 'grey'], expired: ['Verlopen', 'grey'] };
-const SOURCE = { shop: 'Shoplink', embed: 'Shop op je site' };
+const SOURCE = { shop: 'Shoplink', embed: 'Shop op je site', transfer: 'Overgedragen ticket' };
+const isTransfer = (o) => o.source === 'transfer';
+// Foutcodes van het overdragen in gewone taal.
+const TRANSFER_ERR = {
+  ticket_not_valid: 'Dit ticket kun je niet meer overdragen. Het is al gescand, ongeldig gemaakt of de bestelling is terugbetaald.',
+  bad_name: 'Vul de naam van de nieuwe houder in.',
+  bad_email: 'Vul een geldig e-mailadres van de nieuwe houder in.',
+  forbidden: 'Dit ticket hoort niet bij jouw organisatie.',
+};
+// Tickets die in deze sessie zijn overgedragen: die bied je niet meer aan om te herstellen,
+// anders zijn er twee geldige tickets voor één verkochte plek.
+const transferred = new Set();
+const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
 const view = { evId: null, q: '', status: '', offset: 0 };
 
 function statusBadges(o) {
   const [label, kind] = STATUS[o.status] || ['Onbekend', 'grey'];
-  return [badge(label, kind), o.is_test ? badge('Test', 'purple') : null];
+  return [badge(label, kind), isTransfer(o) ? badge('Overgedragen', 'blue') : null, o.is_test ? badge('Test', 'purple') : null];
 }
 const lines = (o) => (o.items || []).map((i) => `${i.qty}x ${i.name}`).join(', ');
 const answer = (v) => (v === true ? 'Ja' : v === false ? 'Nee' : v == null ? '' : String(v));
@@ -50,7 +62,7 @@ export function tabOrders() {
       r.orders.map((o) => h('button', { class: 'orow', type: 'button', onclick: () => orderModal(o.id, load) },
         h('span', { class: 'o-ref' }, h('strong', { class: 'mono' }, o.ref), h('small', null, fmtShort(o.paid_at || o.created_at))),
         h('span', { class: 'o-buyer' }, h('strong', null, o.buyer_name), h('small', null, o.buyer_email)),
-        h('span', { class: 'o-items' }, h('span', null, lines(o) || 'Geen regels'), o.tickets ? h('small', null, `${o.used} van ${o.tickets} ingecheckt`) : null),
+        h('span', { class: 'o-items' }, h('span', null, lines(o) || (isTransfer(o) ? 'Overgedragen ticket' : 'Geen regels')), o.tickets ? h('small', null, `${o.used} van ${o.tickets} ingecheckt`) : null),
         h('span', { class: 'o-total' }, euro(o.total_cents)),
         h('span', { class: 'o-status' }, statusBadges(o))))));
     const from = view.offset + 1, to = view.offset + r.orders.length;
@@ -77,6 +89,7 @@ export function tabOrders() {
 // ---------- detail ----------
 function orderModal(id, onChange) {
   let changed = false;
+  let transferNote = null;   // melding na een overdracht; blijft staan tot het venster sluit
   const m = openModal({ title: 'Bestelling', side: true, body: spinner('Bestelling laden'), onClose: () => { if (changed) { onChange(); loadEvent(S.evId).catch(() => {}); loadState().catch(() => {}); } } });
   const act = async (btn, job, msg) => { const r = await guard(btn, job); if (r !== undefined) { changed = true; if (msg) toast(msg); await draw(); } return r; };
 
@@ -89,13 +102,60 @@ function orderModal(id, onChange) {
     const row = (k, v, cls) => h('div', { class: 'sum-row' + (cls ? ' ' + cls : '') }, h('span', null, k), h('span', null, v));
 
     const tickets = (o.tickets || []).map((t) => {
+      const canTransfer = o.status === 'paid' && t.status === 'valid';
+      const formBox = h('div', { class: 'tk-transfer', hidden: true });
+      const start = h('button', { class: 'btn btn-sm', type: 'button', 'aria-expanded': 'false', onclick: () => {
+        if (!formBox.hidden) { formBox.hidden = true; formBox.replaceChildren(); start.setAttribute('aria-expanded', 'false'); return; }
+        const name = h('input', { type: 'text', maxlength: '120', autocomplete: 'off' });
+        const email = h('input', { type: 'email', maxlength: '200', autocomplete: 'off', inputmode: 'email' });
+        const close = () => { formBox.hidden = true; formBox.replaceChildren(); start.setAttribute('aria-expanded', 'false'); start.focus(); };
+        const submit = h('button', { class: 'btn btn-primary', type: 'submit' }, 'Ticket overdragen');
+        const form = h('form', { novalidate: true, onsubmit: async (ev) => {
+          ev.preventDefault();
+          const n = name.value.trim(), em = email.value.trim();
+          setError(name, n.length >= 2 ? '' : TRANSFER_ERR.bad_name);
+          setError(email, EMAIL.test(em) ? '' : TRANSFER_ERR.bad_email);
+          if (n.length < 2) { name.focus(); return; }
+          if (!EMAIL.test(em)) { email.focus(); return; }
+          if (submit.disabled) return;
+          submit.disabled = true; submit.classList.add('is-busy');
+          let r;
+          try { r = await fn('transfer', { ticket_id: t.id, name: n, email: em }); }
+          catch (ex) {
+            submit.disabled = false; submit.classList.remove('is-busy');
+            if (ex.code === 'session') return;
+            const code = Object.keys(TRANSFER_ERR).find((k) => String(ex.code || '').includes(k));
+            if (code === 'bad_name') { setError(name, TRANSFER_ERR.bad_name); name.focus(); return; }
+            if (code === 'bad_email') { setError(email, TRANSFER_ERR.bad_email); email.focus(); return; }
+            toast(code ? TRANSFER_ERR[code] : ex.message, 'err');
+            if (code === 'ticket_not_valid') { changed = true; await draw(); }
+            return;
+          }
+          changed = true;
+          transferred.add(t.id);
+          transferNote = { name: n, email: em, mail: r.mail, url: /^https?:\/\/[^\s"'<>]+$/.test(String(r.ticket_url || '')) ? r.ticket_url : '' };
+          toast('Ticket overgedragen.');
+          await draw();
+          m.body.scrollTop = 0;
+        } },
+          h('p', { class: 'tk-transfer-title' }, 'Ticket overdragen'),
+          notice('warn', 'Dit ticket wordt ongeldig. De nieuwe houder krijgt per mail een nieuw ticket met een nieuwe QR-code. Dit kun je niet terugdraaien.'),
+          field('Naam van de nieuwe houder', name),
+          field('E-mailadres van de nieuwe houder', email),
+          h('div', { class: 'form-actions' }, h('button', { class: 'btn', type: 'button', onclick: close }, 'Annuleren'), submit));
+        formBox.replaceChildren(form);
+        formBox.hidden = false;
+        start.setAttribute('aria-expanded', 'true');
+        name.focus();
+      } }, icon('swap', 15), 'Overdragen');
       const st = t.status === 'used' ? badge('Ingecheckt', 'green') : t.status === 'void' ? badge('Ongeldig', 'grey') : badge('Geldig', 'blue');
       const b = (label, action, msg, cls) => { const x = h('button', { class: 'btn btn-sm' + (cls ? ' ' + cls : ''), type: 'button', onclick: () => act(x, () => rpc('entree_ticket_set', { ticket_id: t.id, action }), msg) }, label); return x; };
-      const actions = o.status !== 'paid' ? [] : t.status === 'valid' ? [b('Inchecken', 'checkin', 'Ticket ingecheckt.'), b('Ongeldig maken', 'void', 'Ticket ongeldig gemaakt.', 'btn-danger-ghost')]
-        : t.status === 'used' ? [b('Inchecken ongedaan maken', 'undo_checkin', 'Inchecken ongedaan gemaakt.')] : [b('Herstellen', 'restore', 'Ticket is weer geldig.')];
+      const actions = o.status !== 'paid' ? [] : t.status === 'valid' ? [b('Inchecken', 'checkin', 'Ticket ingecheckt.'), start, b('Ongeldig maken', 'void', 'Ticket ongeldig gemaakt.', 'btn-danger-ghost')]
+        : t.status === 'used' ? [b('Inchecken ongedaan maken', 'undo_checkin', 'Inchecken ongedaan gemaakt.')] : transferred.has(t.id) ? [] : [b('Herstellen', 'restore', 'Ticket is weer geldig.')];
       return h('li', { class: 'tk' },
-        h('div', { class: 'tk-main' }, h('div', { class: 'trow-name' }, h('strong', null, t.type), st), h('p', { class: 'trow-meta' }, h('span', { class: 'mono' }, t.code), t.holder_name ? ' · ' + t.holder_name : '', t.used_at ? ' · ingecheckt ' + fmtShort(t.used_at) : '')),
-        actions.length ? h('div', { class: 'row wrap' }, actions) : null);
+        h('div', { class: 'tk-main' }, h('div', { class: 'trow-name' }, h('strong', null, t.type), st), h('p', { class: 'trow-meta' }, h('span', { class: 'mono' }, t.code), t.holder_name ? ' · ' + t.holder_name : '', t.used_at ? ' · ingecheckt ' + fmtShort(t.used_at) : '', transferred.has(t.id) && t.status === 'void' ? ' · overgedragen aan iemand anders' : '')),
+        actions.length ? h('div', { class: 'row wrap' }, actions) : null,
+        canTransfer ? formBox : null);
     });
 
     const resend = h('button', { class: 'btn', type: 'button', onclick: async () => {
@@ -122,12 +182,23 @@ function orderModal(id, onChange) {
       } else toast(r.mollie === 'ok' ? 'Terugbetaald. Het geld staat binnen een paar werkdagen bij de koper.' : 'Bestelling geannuleerd. Er hoefde niets teruggeboekt te worden.');
     } }, 'Terugbetalen');
 
+    const tn = transferNote;
+    const note = !tn ? null : notice(tn.mail === 'sent' ? 'ok' : 'warn',
+      h('p', null, h('strong', null, `Ticket overgedragen aan ${tn.name}. `), 'Het oude ticket is ongeldig.'),
+      h('p', null, tn.mail === 'sent' ? `Het nieuwe ticket is gemaild naar ${tn.email}.`
+        : `${tn.mail === 'failed' ? 'De mail versturen is niet gelukt.' : 'Er is geen mail verstuurd.'} Stuur de link naar de nieuwe ticketpagina zelf door naar ${tn.email}.`),
+      tn.url ? h('div', { class: 'row wrap tk-note-actions' },
+        h('a', { class: 'btn btn-sm', href: tn.url, target: '_blank', rel: 'noopener' }, icon('external', 15), 'Nieuwe ticketpagina openen'),
+        h('button', { class: 'btn btn-sm', type: 'button', onclick: () => copyText(tn.url, 'Link gekopieerd') }, icon('copy', 15), 'Kopieer link')) : null);
+
     m.setBody(h('div', { class: 'order' },
+      note,
       h('div', { class: 'order-top' }, h('div', null, h('p', { class: 'order-ref mono' }, o.ref), h('p', { class: 'muted' }, fmtDate(o.paid_at || o.created_at))), h('div', { class: 'row' }, statusBadges(o))),
       h('section', null, h('h3', null, 'Koper'),
         h('p', null, h('strong', null, o.buyer_name)), h('p', null, h('a', { href: 'mailto:' + o.buyer_email }, o.buyer_email)),
-        h('p', { class: 'muted small' }, [SOURCE[o.source] ? 'Besteld via: ' + SOURCE[o.source] : '', o.mail_sent_at ? 'Ticketmail verstuurd op ' + fmtShort(o.mail_sent_at) : o.status === 'paid' ? 'Ticketmail nog niet verstuurd' : '', o.refunded_at ? 'Terugbetaald op ' + fmtShort(o.refunded_at) : ''].filter(Boolean).join(' · '))),
-      h('section', null, h('h3', null, 'Bestelling'),
+        h('p', { class: 'muted small' }, [isTransfer(o) ? 'Gekregen via een overdracht' : SOURCE[o.source] ? 'Besteld via: ' + SOURCE[o.source] : '', o.mail_sent_at ? 'Ticketmail verstuurd op ' + fmtShort(o.mail_sent_at) : o.status === 'paid' ? 'Ticketmail nog niet verstuurd' : '', o.refunded_at ? 'Terugbetaald op ' + fmtShort(o.refunded_at) : ''].filter(Boolean).join(' · '))),
+      isTransfer(o) ? h('section', null, h('h3', null, 'Bestelling'), h('p', { class: 'muted' }, 'Dit ticket is overgedragen vanuit een andere bestelling. Bij deze overdracht is niets betaald.'))
+      : h('section', null, h('h3', null, 'Bestelling'),
         h('div', { class: 'sum' },
           (o.items || []).map((i) => row(`${i.qty}x ${i.name}`, euro(i.qty * i.unit_price_cents))),
           o.discount_cents ? row(`Korting${o.discount_code ? ' (' + o.discount_code + ')' : ''}`, '- ' + euro(o.discount_cents)) : null,

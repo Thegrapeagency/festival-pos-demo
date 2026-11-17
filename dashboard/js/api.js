@@ -35,6 +35,7 @@ const ERR = {
   not_paid: 'Alleen betaalde bestellingen kun je terugbetalen.',
   too_many: 'Je hebt het maximum van 25 scanlinks bereikt. Verwijder er eerst een.',
   bad_action: 'Dat kan niet met dit ticket. Laad de bestelling opnieuw en probeer het nog een keer.',
+  ticket_transferred: 'Dit ticket is overgedragen aan iemand anders en kun je daarom niet herstellen.',
   bad_email: 'Vul een geldig e-mailadres in.',
   bad_key: 'Dit lijkt geen Mollie API-sleutel. Hij begint met live_ of test_.',
   rate_limited: 'Te veel pogingen. Probeer het over een paar minuten opnieuw.',

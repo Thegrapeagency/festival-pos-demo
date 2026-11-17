@@ -562,6 +562,63 @@ input[aria-invalid=true], textarea[aria-invalid=true] { border-color:var(--dange
 }
 .up-body .row { flex-wrap:wrap; }
 
+/* ---------- trackinglinks ---------- */
+.tl-new .field { margin:16px 0 0; }
+.tl-new .copy-row .btn { flex:none; }
+.tl-created { margin-top:18px; padding:16px 18px 18px; background:var(--petrol-50); border-left:3px solid var(--petrol-600); border-radius:var(--r-sm); }
+.tl-created .field { margin:0; }
+.tl-list { display:grid; gap:14px; min-width:0; }
+.tl-head-row { align-items:center; }
+.tl-sort { display:flex; align-items:center; gap:10px; }
+.tl-sort label { font-size:14.5px; color:var(--ink2); white-space:nowrap; }
+.tl-sort select { width:auto; min-width:176px; }
+.tl-table { overflow:hidden; }
+.tl-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; align-items:start; padding:16px 18px; border-top:1px solid var(--line); }
+.tl-row.tl-head { display:none; }
+.tl-table .tl-row:nth-child(2) { border-top:0; }
+.tl-row.is-new { box-shadow:inset 3px 0 0 var(--apricot-600); }
+.tl-rest { background:var(--cream); }
+.tl-main { grid-column:1 / -1; min-width:0; }
+.tl-main strong { color:var(--petrol-900); font-size:17px; font-weight:600; overflow-wrap:anywhere; }
+.tl-url { grid-column:1 / -1; color:var(--ink2); font-size:13px; overflow-wrap:anywhere; }
+.tl-url.mono { font-size:12.5px; }
+.tl-stat { display:grid; gap:1px; min-width:0; font-variant-numeric:tabular-nums; }
+.tl-stat small { font-size:11.5px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--ink2); }
+.tl-stat b { font-weight:600; color:var(--petrol-900); white-space:nowrap; }
+.tl-stat.is-none b { font-weight:400; color:var(--ink3); font-size:13.5px; }
+.tl-stat.is-blank { display:none; }
+.tl-actions { grid-column:1 / -1; display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+.tl-actions-end { margin-left:auto; display:flex; gap:2px; }
+.tl-foot { margin:0; }
+.tl-examples { justify-content:center; margin-top:10px; }
+.tl-qr { display:grid; gap:18px; }
+.tl-break { overflow-wrap:anywhere; text-align:center; margin:0; }
+.tl-site { display:grid; gap:16px; }
+.tl-site .field { margin:0; }
+@media (min-width:821px) {
+  .tl-row { grid-template-columns:minmax(0,1fr) 64px 108px 64px 108px 92px; gap:4px 16px; align-items:center; }
+  .tl-row.tl-head { display:grid; background:var(--sand); border-top:0; padding:11px 18px; font-size:12px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--ink2); }
+  .tl-head span:not(:first-child), .tl-stat { text-align:right; }
+  .tl-main { grid-column:1; }
+  .tl-stat small { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap; }
+  .tl-stat.is-blank { display:block; }
+  .tl-actions { margin-top:8px; }
+}
+
+@media (max-width:420px) {
+  .tl-row { gap:12px 8px; }
+  .tl-stat small { font-size:10.5px; letter-spacing:.04em; }
+}
+
+/* ---------- ticket overdragen ---------- */
+.tk-transfer { border-top:1px solid var(--line); padding-top:14px; }
+.tk-transfer-title { font-weight:600; color:var(--petrol-900); margin-bottom:10px; }
+.tk-transfer .notice { font-size:14.5px; padding:12px 14px; margin-bottom:14px; }
+.tk-transfer .field { margin-bottom:12px; }
+.tk-transfer .form-actions { margin-top:4px; }
+.tk-note-actions { margin-top:10px; }
+.order .notice p + p { margin-top:4px; }
+
 /* ---------- betalingen: de keuze ---------- */
 .pay-choice { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; margin:18px 0 0; }
 .pay-opt { position:relative; border:1px solid var(--line-strong); border-radius:var(--r); padding:24px 22px 22px; background:var(--paper); display:flex; flex-direction:column; gap:14px; min-width:0; }

@@ -4,8 +4,8 @@
  *   Knop:    <button data-entree-button="SLUG">Tickets</button>
  *            <script async src="https://.../embed.js"></script>
  *
- * Optioneel data-code="KORTINGSCODE". utm_*-parameters en ?code= van je pagina
- * gaan vanzelf mee. Voeg je later elementen toe, roep dan window.Entree.scan() aan.
+ * Optioneel data-code="KORTINGSCODE". utm_*-parameters, ?code= en ?via= (trackinglink)
+ * van je pagina gaan vanzelf mee. Voeg je later elementen toe, roep dan window.Entree.scan() aan.
  */
 (function () {
   'use strict';
@@ -31,7 +31,7 @@
   var BASE = findBase();
 
   function pageParams() {
-    var out = [], code = '';
+    var out = [], code = '', via = '';
     var q = (window.location.search || '').replace(/^\?/, '').split('&');
     for (var i = 0; i < q.length; i++) {
       var p = q[i].split('=');
@@ -39,8 +39,9 @@
       if (!key || !val) continue;
       if (/^utm_[a-z_]{1,20}$/.test(key)) out.push(key + '=' + val);
       if (key === 'code') { try { code = decodeURIComponent(val.replace(/\+/g, ' ')); } catch (e) { code = ''; } }
+      if (key === 'via') { try { via = decodeURIComponent(val.replace(/\+/g, ' ')); } catch (e) { via = ''; } }
     }
-    return { utm: out, code: code };
+    return { utm: out, code: code, via: via };
   }
   function parentUrl() {
     var href = String(window.location.href).replace(/#.*$/, '');
@@ -52,6 +53,7 @@
     var url = BASE + '/t/?e=' + encodeURIComponent(slug) + '&embed=1&parent=' + encodeURIComponent(parentUrl());
     code = code || pp.code;
     if (code) url += '&code=' + encodeURIComponent(String(code).slice(0, 40));
+    if (pp.via) url += '&via=' + encodeURIComponent(String(pp.via).slice(0, 40));
     if (pp.utm.length) url += '&' + pp.utm.join('&');
     return url;
   }

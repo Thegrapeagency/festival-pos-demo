@@ -1,5 +1,5 @@
 // Eén event: kader met tabs, en de tabs Overzicht, Gegevens, Tickets,
-// Kortingscodes, Vragen, Op je site en Scannen.
+// Kortingscodes, Vragen, Op je site, Trackinglinks en Scannen.
 import { rpc, BASE } from './api.js';
 import { h, icon, toast, guard, field, toggle, setError, badge, notice, empty, openModal, confirmDialog, euro, euroShort, centsToInput, parseEuro, num, intOrNull,
   fmtDate, fmtShort, toLocalInput, fromLocalInput, copyRow, copyText, qrNode, qrDownloadSvg, qrDownloadPng } from './ui.js';
@@ -7,10 +7,11 @@ import { S, loadEvent, loadState, shopUrl, previewUrl, scanUrl, local, payReady 
 import { statusBadge } from './home.js';
 import { tabBrand, brandDirty } from './brand.js';
 import { tabOrders } from './orders.js';
+import { tabTracking } from './tracking.js';
 
 const TABS = [
   ['overzicht', 'Overzicht', 'chart'], ['gegevens', 'Gegevens', 'calendar'], ['tickets', 'Tickets', 'ticket'], ['codes', 'Kortingscodes', 'tag'],
-  ['huisstijl', 'Huisstijl', 'palette'], ['vragen', 'Vragen', 'help'], ['site', 'Op je site', 'code'], ['bestellingen', 'Bestellingen', 'list'], ['scannen', 'Scannen', 'scan'],
+  ['huisstijl', 'Huisstijl', 'palette'], ['vragen', 'Vragen', 'help'], ['site', 'Op je site', 'code'], ['trackinglinks', 'Trackinglinks', 'link'], ['bestellingen', 'Bestellingen', 'list'], ['scannen', 'Scannen', 'scan'],
 ];
 
 // Na een wijziging: event opnieuw ophalen en het scherm opnieuw tekenen.
@@ -33,7 +34,7 @@ export function viewEvent(tab) {
     ? h('a', { class: 'btn', href: shopUrl(e.slug), target: '_blank', rel: 'noopener' }, icon('external', 16), 'Bekijk shop')
     : h('a', { class: 'btn', href: previewUrl(e), target: '_blank', rel: 'noopener' }, icon('eye', 16), 'Bekijk voorbeeld');
   const meta = [e.starts_at ? fmtDate(e.starts_at) : 'Nog geen datum', e.location].filter(Boolean).join(' · ');
-  const body = { overzicht: tabOverview, gegevens: tabDetails, tickets: tabTickets, codes: tabCodes, huisstijl: tabBrand, vragen: tabQuestions, site: tabSite, bestellingen: tabOrders, scannen: tabScan }[tab]();
+  const body = { overzicht: tabOverview, gegevens: tabDetails, tickets: tabTickets, codes: tabCodes, huisstijl: tabBrand, vragen: tabQuestions, site: tabSite, trackinglinks: tabTracking, bestellingen: tabOrders, scannen: tabScan }[tab]();
   setTimeout(() => { const on = nav.querySelector('.is-on'); if (on && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = on.offsetLeft - 16; }, 0);
   return h('div', { class: 'page page-event' },
     h('a', { class: 'back', href: '#/' }, icon('left', 16), 'Alle events'),
