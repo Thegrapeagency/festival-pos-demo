@@ -2,6 +2,7 @@
 import { rpc, upload } from './api.js';
 import { h, icon, toast, guard, field, toggle, setError, notice, debounce } from './ui.js';
 import { S, loadEvent, loadState, previewUrl } from './store.js';
+import { VOORBEELD } from './voorbeeld.js';
 import { analyseImage, analysePdf, prepareImage, contrastRatio } from './palette.js';
 
 const EB = window.EntreeBrand;
@@ -58,10 +59,14 @@ export function tabBrand() {
   let device = window.innerWidth < 1180 ? 'mobile' : 'desktop';
 
   // ----- voorbeeld -----
-  const iframe = h('iframe', { class: 'pv-iframe', title: 'Voorbeeld van je shop', src: previewUrl(e) + '&embed=1' });
+  // In de klantweergave bestaat het event niet op de server: daar tonen we een uitleg in plaats van de shop.
+  const iframe = VOORBEELD ? h('div', { class: 'pv-stub' }, h('div', { class: 'pv-stub-ic' }, icon('eye', 24)), h('h3', null, 'Hier staat het live voorbeeld van de shop'),
+    h('p', null, 'Een klant ziet op deze plek zijn echte shop, die meebeweegt met elke wijziging in kleur, lettertype en logo.'),
+    h('p', null, 'Dit voorbeeld-event bestaat niet echt, dus er is geen shop om te laden. De instellingen hiernaast werken wel.'))
+    : h('iframe', { class: 'pv-iframe', title: 'Voorbeeld van je shop', src: previewUrl(e) + '&embed=1' });
   let synced = false;
   const post = () => {
-    if (!iframe.contentWindow) return;
+    if (VOORBEELD || !iframe.contentWindow) return;
     try {
       iframe.contentWindow.postMessage({ entreePreview: { shop: payload(draft, (S.ev.event.shop || {}).fields), event: { name: e.name, location: e.location, starts_at: e.starts_at, description: e.description } } }, location.origin);
     } catch { /* het voorbeeld is nog niet geladen */ }
@@ -78,7 +83,7 @@ export function tabBrand() {
   // Desktop tonen we op 1120 px breed en schalen we passend; mobiel op 390 px.
   const fit = () => {
     const w = frame.clientWidth, hgt = frame.clientHeight;
-    if (!w || !hgt) return;
+    if (VOORBEELD || !w || !hgt) return;
     const base = device === 'mobile' ? 390 : 1120;
     const sc = Math.min(1, w / base);
     iframe.style.width = base + 'px';
@@ -97,7 +102,7 @@ export function tabBrand() {
       h('div', { class: 'seg seg-sm', role: 'radiogroup', 'aria-label': 'Schermformaat van het voorbeeld' }, devBtn('desktop', 'Desktop', 'desktop'), devBtn('mobile', 'Mobiel', 'mobile')),
       h('a', { class: 'icon-btn', href: previewUrl(e), target: '_blank', rel: 'noopener', 'aria-label': 'Voorbeeld openen in een nieuw tabblad', title: 'Openen in een nieuw tabblad' }, icon('external', 17))),
     frame,
-    h('p', { class: 'hint pv-hint' }, 'Dit is je echte shop met je conceptwijzigingen. Kopers zien ze pas na Opslaan.'));
+    h('p', { class: 'hint pv-hint' }, VOORBEELD ? 'Bij een echte klant staat hier zijn shop met de conceptwijzigingen.' : 'Dit is je echte shop met je conceptwijzigingen. Kopers zien ze pas na Opslaan.'));
 
   // ----- opslaan -----
   const stateEl = h('span', { class: 'savebar-state' });

@@ -1,7 +1,9 @@
 // De chat-assistent: een knop rechtsonder en een paneel waarin de organisator typt
 // wat hij wil regelen. De server voert het uit; live zetten of pauzeren vraagt hier
-// altijd een klik. Antwoorden worden als platte tekst getoond, nooit als HTML.
+// altijd een klik. Antwoorden worden als platte tekst getoond, nooit als HTML: alleen
+// **vet** en regels die met "- " beginnen krijgen opmaak, opgebouwd uit losse elementen.
 import { rpc, fn } from './api.js';
+import { VOORBEELD } from './voorbeeld.js';
 import { h, icon, ornament, notice, BRAND } from './ui.js';
 import { S, loadState } from './store.js';
 
@@ -41,11 +43,13 @@ const newId = () => 'm' + Date.now().toString(36) + (++idSeq);
 // ---------- bewaren (alleen in dit tabblad) ----------
 function persist() {
   if (msgs.length > KEEP) msgs = msgs.slice(-KEEP);
+  if (VOORBEELD) return; // het voorbeeld bewaart niets buiten het geheugen
   try { sessionStorage.setItem(STORE, JSON.stringify({ owner, msgs })); } catch { /* dan alleen in het geheugen */ }
 }
 function restore(org) {
   if (owner === org) return;
   owner = org; msgs = [];
+  if (VOORBEELD) return;
   try {
     const d = JSON.parse(sessionStorage.getItem(STORE));
     if (d && d.owner === org && Array.isArray(d.msgs)) {
@@ -57,6 +61,7 @@ function restore(org) {
 }
 function forget() {
   msgs = [];
+  if (VOORBEELD) return;
   try { sessionStorage.removeItem(STORE); } catch { /* niets */ }
 }
 
@@ -146,8 +151,46 @@ function bubble(m) {
   const cls = 'assist-msg ' + (m.role === 'user' ? 'is-user' : 'is-assistant') + (m.kind === 'error' ? ' is-error' : '');
   const who = h('span', { class: 'sr' }, m.role === 'user' ? 'Jij: ' : m.kind === 'error' ? 'Melding: ' : 'Assistent: ');
   const text = h('span', { class: 'assist-text' });
-  text.textContent = m.text; // altijd platte tekst
+  if (m.role === 'assistant' && m.kind === 'text') rich(text, m.text);
+  else text.textContent = m.text; // altijd platte tekst
   return h('div', { class: cls }, who, text);
+}
+
+// Kleine, veilige weergave van een antwoord: **tekst** wordt vet en regels die met "- " beginnen
+// worden een opsomming. Al het andere blijft platte tekst met regeleinden. Alles gaat via
+// tekstknopen, dus wat de server ook stuurt, het wordt nooit als HTML gelezen.
+function inline(el, s) {
+  const re = /\*\*(\S(?:[^\n]*?\S)?)\*\*/g;
+  let last = 0, m;
+  while ((m = re.exec(s))) {
+    if (m.index > last) el.append(document.createTextNode(s.slice(last, m.index)));
+    const b = document.createElement('strong');
+    b.textContent = m[1];
+    el.append(b);
+    last = m.index + m[0].length;
+  }
+  if (last < s.length) el.append(document.createTextNode(s.slice(last)));
+}
+function rich(el, raw) {
+  const lines = String(raw == null ? '' : raw).replace(/\r\n?/g, '\n').split('\n');
+  if (!lines.some((l) => l.startsWith('- ')) ) { inline(el, lines.join('\n')); return; }
+  let par = [], list = null;
+  const flush = () => {
+    // lege regels rond een opsomming zijn alleen witruimte; de opsomming heeft zelf al marge
+    while (par.length && !par[0].trim()) par.shift();
+    while (par.length && !par[par.length - 1].trim()) par.pop();
+    if (par.length) { const p = h('span', { class: 'assist-par' }); inline(p, par.join('\n')); el.append(p); }
+    par = [];
+  };
+  for (const line of lines) {
+    if (line.startsWith('- ')) {
+      if (!list) { flush(); list = h('ul', { class: 'assist-list' }); el.append(list); }
+      const li = document.createElement('li');
+      inline(li, line.slice(2).trim());
+      list.append(li);
+    } else { list = null; par.push(line); }
+  }
+  flush();
 }
 
 function confirmCard(m) {
@@ -308,7 +351,10 @@ async function send() {
     if (pending !== ctrl || (e && e.code === 'session')) return;
     mine.failed = true;
     const code = String((e && e.code) || '');
-    if (timedOut) {
+    if (code === 'voorbeeld') {
+      // klantweergave: geen fout, alleen de melding dat hier niets gebeurt
+      push({ role: 'assistant', kind: 'note', text: (e && e.message) || '' });
+    } else if (timedOut) {
       push({ role: 'assistant', kind: 'error', text: 'Het antwoord bleef te lang weg. Het kan zijn dat je opdracht wel is uitgevoerd. Kijk dat eerst na voordat je het opnieuw vraagt.' });
       loadState().then(() => softRender()).catch(() => {});
     } else {

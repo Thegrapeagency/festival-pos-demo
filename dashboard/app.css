@@ -776,3 +776,47 @@ body:has(.savebar) .assist-fab { bottom:92px; }
   body:has(.savebar) .assist-fab { bottom:128px; }
   .assist-meta-l #assist-hint { display:none; }
 }
+
+/* ---------- klantweergave: de kaart op Platformbeheer ---------- */
+.vb-card .card-head { margin-bottom:6px; }
+.vb-group { margin-top:18px; }
+.vb-group-label { font-size:12.5px; font-weight:600; letter-spacing:.14em; text-transform:uppercase; color:var(--ink2); margin-bottom:8px; }
+.vb-links { display:grid; grid-template-columns:repeat(auto-fit,minmax(250px,1fr)); gap:10px; }
+.vb-link { display:flex; align-items:center; gap:12px; min-height:68px; padding:12px 14px; border:1px solid var(--line-strong); border-radius:var(--r-sm); background:var(--paper); color:var(--petrol-900); text-decoration:none; transition:border-color .12s, background .12s; }
+.vb-link:hover { border-color:var(--petrol-600); background:var(--petrol-50); color:var(--petrol-900); }
+.vb-link-ic { flex:none; display:grid; place-items:center; width:38px; height:38px; border-radius:var(--r-sm); background:var(--apricot-100); color:var(--apricot-ink); }
+.vb-link-text { flex:1; min-width:0; display:grid; gap:1px; }
+.vb-link-text strong { font-weight:600; line-height:1.3; }
+.vb-link-text small { font-size:13.5px; line-height:1.4; color:var(--ink2); }
+.vb-link > .ic:last-child { color:var(--ink2); }
+.vb-card .notice { margin-top:18px; }
+
+/* ---------- klantweergave: de balk in voorbeeldmodus ---------- */
+/* De balk staat vast bovenaan; alles wat aan de bovenkant plakt, schuift zijn hoogte (--vb-h) op. */
+.vb-bar { position:sticky; top:0; z-index:55; display:flex; align-items:center; justify-content:center; gap:8px 18px; min-height:42px; padding:6px 16px; background:var(--apricot-200); color:var(--petrol-950); font-size:14.5px; line-height:1.35; box-shadow:inset 0 -1px 0 var(--apricot-600); }
+.vb-bar p { display:flex; align-items:center; gap:9px; min-width:0; }
+.vb-bar strong { font-weight:600; }
+.vb-close { flex:none; display:inline-flex; align-items:center; gap:6px; min-height:30px; padding:3px 11px; border:1px solid var(--apricot-ink); border-radius:var(--r-sm); background:var(--paper); color:var(--petrol-950); font-size:13.5px; font-weight:500; cursor:pointer; }
+.vb-close:hover { background:#fff; }
+body.is-voorbeeld .top { top:var(--vb-h,42px); }
+body.is-voorbeeld .tabs, body.is-voorbeeld .pv { top:calc(var(--vb-h,42px) + var(--top) + 20px); }
+body.is-voorbeeld .pv-frame { height:calc(100dvh - var(--vb-h,42px) - var(--top) - 120px); }
+body.is-voorbeeld .auth { min-height:calc(100dvh - var(--vb-h,42px)); }
+body.is-voorbeeld .assist { top:var(--vb-h,42px); }
+body.is-voorbeeld .skip:focus { top:calc(var(--vb-h,42px) + 12px); }
+@media (max-width:1180px) { body.is-voorbeeld .pv-frame { height:620px; } }
+@media (max-width:1023px) { body.is-voorbeeld .tabs { top:calc(var(--vb-h,42px) + var(--top)); } }
+@media (max-width:640px) { .vb-bar { justify-content:space-between; font-size:13.5px; padding:6px 12px; } }
+.pv-stub { position:absolute; inset:0; display:grid; align-content:center; justify-items:center; gap:10px; padding:28px; text-align:center; background:var(--paper); }
+.pv-stub p { max-width:42ch; color:var(--ink2); }
+.pv-stub-ic { display:grid; place-items:center; width:54px; height:54px; border-radius:50%; background:var(--petrol-50); color:var(--petrol-600); }
+.toast-info { border-left-color:var(--gold-soft); } .toast-info .ic { color:var(--gold-soft); }
+
+/* ---------- assistent: vet en opsommingen in een antwoord ---------- */
+.assist-par { display:block; }
+.assist-list { display:block; margin:6px 0; padding-left:20px; white-space:normal; }
+.assist-list:first-child { margin-top:0; } .assist-list:last-child { margin-bottom:0; }
+.assist-list li { margin:2px 0; }
+.assist-text strong { font-weight:600; }
+/* Breed scherm met het paneel open: de pagina schuift op, de balk blijft over de hele breedte staan. */
+@media (min-width:1440px) { body.is-voorbeeld.has-assist .vb-bar { margin-right:-400px; } }

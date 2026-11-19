@@ -1,6 +1,6 @@
 // Tab Bestellingen: zoeken, filteren, detail, ticket overdragen, terugbetalen en export.
 import { rpc, fn } from './api.js';
-import { h, icon, toast, guard, field, setError, badge, notice, empty, spinner, openModal, confirmDialog, euro, num, fmtDate, fmtShort, debounce, download, copyText, BRAND } from './ui.js';
+import { h, icon, toast, toastErr, guard, field, setError, badge, notice, empty, spinner, openModal, confirmDialog, euro, num, fmtDate, fmtShort, debounce, download, copyText, BRAND } from './ui.js';
 import { S, loadEvent, loadState, ticketUrl } from './store.js';
 
 const PAGE = 25;
@@ -124,6 +124,7 @@ function orderModal(id, onChange) {
           catch (ex) {
             submit.disabled = false; submit.classList.remove('is-busy');
             if (ex.code === 'session') return;
+            if (ex.code === 'voorbeeld') { toastErr(ex); return; }
             const code = Object.keys(TRANSFER_ERR).find((k) => String(ex.code || '').includes(k));
             if (code === 'bad_name') { setError(name, TRANSFER_ERR.bad_name); name.focus(); return; }
             if (code === 'bad_email') { setError(email, TRANSFER_ERR.bad_email); email.focus(); return; }

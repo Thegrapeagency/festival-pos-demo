@@ -1,4 +1,6 @@
 // Alle communicatie met de server: sessie, dashboard-functies, uploads.
+// In voorbeeldmodus (zie voorbeeld.js) gaat er niets naar de server en blijft de opgeslagen sessie onaangeroerd.
+import { VOORBEELD, VOORBEELD_EMAIL, voorbeeldRpc, voorbeeldFn, voorbeeldUpload, voorbeeldLogin, voorbeeldSignup } from './voorbeeld.js';
 const C = window.ENTREE || {};
 export const SB = String(C.SUPABASE_URL || '').replace(/\/+$/, '');
 export const ANON = C.ANON_KEY || '';
@@ -51,8 +53,15 @@ export function explain(code) {
 
 // ---------- sessie ----------
 const KEY = 'entree_session';
-function read() { try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } }
-let session = read();
+function read() { if (VOORBEELD) return null; try { return JSON.parse(localStorage.getItem(KEY)); } catch { return null; } }
+// Het voorbeeld heeft een eigen, vluchtige sessie in het geheugen. Bij inloggen en aanmelden begin je uitgelogd.
+const demoSession = (email) => ({ access_token: 'voorbeeld', refresh_token: '', expires_at: Infinity, email: email || VOORBEELD_EMAIL });
+let session = VOORBEELD === 'nieuw' || VOORBEELD === 'actief' ? demoSession() : read();
+// Antwoorden uit de voorbeeldgegevens, met dezelfde foutmeldingen als bij de server.
+async function demo(job) {
+  try { return await job(); }
+  catch (e) { throw new ApiError((e && e.code) || 'voorbeeld', (e && e.message) || explain(e && e.code)); }
+}
 let lostCb = null;
 export function onSessionLost(cb) { lostCb = cb; }
 export function hasSession() { return !!(session && session.access_token); }
@@ -65,12 +74,13 @@ function store(tok) {
     expires_at: Date.now() + (Number(tok.expires_in) || 3600) * 1000,
     email: (tok.user && tok.user.email) || (session && session.email) || '',
   };
+  if (VOORBEELD) return;
   try { localStorage.setItem(KEY, JSON.stringify(session)); } catch { /* privémodus: sessie alleen in dit tabblad */ }
 }
 function drop(notify) {
   const had = !!session;
   session = null;
-  try { localStorage.removeItem(KEY); } catch { /* niets */ }
+  if (!VOORBEELD) try { localStorage.removeItem(KEY); } catch { /* niets */ }
   if (notify && had && lostCb) lostCb();
 }
 
@@ -128,6 +138,7 @@ const pub = { apikey: ANON, Authorization: 'Bearer ' + ANON, 'Content-Type': 'ap
 const sentence = (s) => typeof s === 'string' && /\s/.test(s);
 
 export async function login(email, password) {
+  if (VOORBEELD) { session = demoSession(await demo(() => voorbeeldLogin(email))); return; }
   const r = await http(SB + '/auth/v1/token?grant_type=password', {
     method: 'POST', headers: { apikey: ANON, 'Content-Type': 'application/json' }, body: JSON.stringify({ email, password }),
   });
@@ -138,6 +149,7 @@ export async function login(email, password) {
   store(body);
 }
 export async function signup(org_name, email, password, website) {
+  if (VOORBEELD) return demo(() => voorbeeldSignup(org_name, email));
   const r = await http(SB + '/functions/v1/signup', {
     method: 'POST', headers: pub,
     body: JSON.stringify({ org_name, event_name: '', email, password, modules: ['ticketing'], website: website || '' }),
@@ -146,6 +158,7 @@ export async function signup(org_name, email, password, website) {
   if (!r.ok || !body || !body.ok) throw new ApiError('signup', body && sentence(body.error) ? body.error : GENERIC);
 }
 export async function logout() {
+  if (VOORBEELD) { session = null; return; }
   const t = session && session.access_token;
   drop(false);
   if (t) { try { await fetch(SB + '/auth/v1/logout', { method: 'POST', headers: { apikey: ANON, Authorization: 'Bearer ' + t } }); } catch { /* lokaal al uitgelogd */ } }
@@ -153,6 +166,7 @@ export async function logout() {
 
 // ---------- functies ----------
 export async function rpc(name, p = {}) {
+  if (VOORBEELD) return demo(() => voorbeeldRpc(name, p));
   const { r, body } = await authed(`${SB}/rest/v1/rpc/${name}`, {
     method: 'POST', headers: { 'Content-Type': 'application/json', 'Content-Profile': 'festival_pos' }, body: JSON.stringify({ p }),
   });
@@ -165,17 +179,20 @@ function fnError(r, body) {
 }
 // opts.signal: een AbortSignal om een lang verzoek af te breken (de assistent kan een halve minuut nadenken).
 export async function fn(action, payload = {}, opts = {}) {
+  if (VOORBEELD) return demo(() => voorbeeldFn(action, payload));
   const { r, body } = await authed(`${FN}?a=${action}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload), signal: opts.signal });
   if (!r.ok) throw fnError(r, body);
   return body || {};
 }
 export async function fnPublic(action, payload = {}) {
+  if (VOORBEELD) return demo(() => voorbeeldFn(action, payload));
   const r = await http(`${FN}?a=${action}`, { method: 'POST', headers: pub, body: JSON.stringify(payload) });
   const body = await parse(r);
   if (!r.ok) throw fnError(r, body);
   return body || {};
 }
 export async function upload(orgId, filename, blob, mime) {
+  if (VOORBEELD) return demo(() => voorbeeldUpload());
   const path = `${encodeURIComponent(orgId)}/${encodeURIComponent(filename)}`;
   const { r } = await authed(`${SB}/storage/v1/object/shop-assets/${path}`, { method: 'POST', headers: { 'Content-Type': mime, 'x-upsert': 'true' }, body: blob });
   if (!r.ok) throw new ApiError('upload', r.status === 413 ? 'Dit bestand is te groot. Kies een kleiner bestand.' : 'Het uploaden lukte niet. Probeer het opnieuw.');

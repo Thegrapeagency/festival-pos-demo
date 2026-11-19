@@ -93,12 +93,13 @@ export function icon(name, size = 18) {
 // ---------- toasts ----------
 export function toast(msg, type = 'ok') {
   const box = document.getElementById('toasts');
-  const el = h('div', { class: 'toast toast-' + type, role: type === 'err' ? 'alert' : 'status' }, icon(type === 'err' ? 'alert' : 'check', 16), h('span', null, msg));
+  const el = h('div', { class: 'toast toast-' + type, role: type === 'err' ? 'alert' : 'status' }, icon(type === 'err' ? 'alert' : type === 'info' ? 'info' : 'check', 16), h('span', null, msg));
   box.append(el);
   while (box.children.length > 3) box.firstChild.remove();
-  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 250); }, type === 'err' ? 6500 : 3200);
+  setTimeout(() => { el.classList.add('out'); setTimeout(() => el.remove(), 250); }, type === 'ok' ? 3200 : 6500);
 }
-export const toastErr = (e) => toast((e && e.message) || 'Er ging iets mis. Probeer het opnieuw.', 'err');
+// Code 'voorbeeld' is geen fout: in de klantweergave gebeurt er bij die actie bewust niets.
+export const toastErr = (e) => toast((e && e.message) || 'Er ging iets mis. Probeer het opnieuw.', e && e.code === 'voorbeeld' ? 'info' : 'err');
 
 // Knop uitschakelen tijdens een verzoek; fouten netjes melden. Geeft undefined bij een fout.
 export async function guard(btn, fn) {

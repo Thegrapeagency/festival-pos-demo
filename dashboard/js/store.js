@@ -1,5 +1,6 @@
 // Gedeelde toestand van het dashboard.
 import { rpc, BASE } from './api.js';
+import { VOORBEELD } from './voorbeeld.js';
 
 export const S = {
   state: null,        // antwoord van entree_state
@@ -31,15 +32,17 @@ export async function loadEvent(id) {
 // Betalingen zijn geregeld bij een eigen Mollie-sleutel (test of live) of bij uitbetaling via het platform.
 export const payReady = (mode) => mode === 'live' || mode === 'test' || mode === 'platform';
 export const showPayouts = () => !!(S.state && S.state.payments && (S.state.payments.payout_mode === 'platform' || S.payoutHistory));
-export const isPlatformAdmin = () => !!(S.state && S.state.is_platform === true);
+// In het voorbeeld bestaat platformbeheer niet: een klant ziet dat ook niet.
+export const isPlatformAdmin = () => !VOORBEELD && !!(S.state && S.state.is_platform === true);
 export function go(hash) { if (location.hash === hash) S.render(); else location.hash = hash; }
 export const shopUrl = (slug) => `${BASE}/t/?e=${encodeURIComponent(slug)}`;
 export const previewUrl = (ev) => `${shopUrl(ev.slug)}&preview=${encodeURIComponent(ev.preview_token || '')}`;
 export const scanUrl = (token) => `${BASE}/t/scan.html?k=${encodeURIComponent(token)}`;
 export const ticketUrl = (token) => `${BASE}/t/ticket.html?order=${encodeURIComponent(token)}`;
 
+// Kleine voorkeuren van deze browser. In het voorbeeld alleen in het geheugen, zodat de echte opslag onaangeroerd blijft.
 const mem = {};
 export const local = {
-  get(k) { try { return localStorage.getItem(k); } catch { return mem[k] || null; } },
-  set(k, v) { mem[k] = v; try { localStorage.setItem(k, v); } catch { /* alleen in geheugen */ } },
+  get(k) { if (VOORBEELD) return mem[k] || null; try { return localStorage.getItem(k); } catch { return mem[k] || null; } },
+  set(k, v) { mem[k] = v; if (VOORBEELD) return; try { localStorage.setItem(k, v); } catch { /* alleen in geheugen */ } },
 };

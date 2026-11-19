@@ -25,7 +25,7 @@ const dayLong = (ymd) => {
 const dayShort = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' }); };
 const signed = (cents) => (cents < 0 ? '- ' + euro(-cents) : euro(cents));
 // replaceChildren zet null als tekst neer; lege onderdelen slaan we daarom over.
-const put = (root, ...kids) => root.replaceChildren(...kids.filter((k) => k != null && k !== false));
+const put = (root, ...kids) => root.replaceChildren(...kids.flat().filter((k) => k != null && k !== false));
 const li = (...kids) => h('li', null, icon('check', 17), h('span', null, kids));
 
 // ---------- Instellingen: hoe word je betaald ----------
@@ -233,10 +233,30 @@ export function viewPayouts() {
   return root;
 }
 
+// ---------- Platformbeheer: bekijken wat een klant ziet ----------
+// Elke knop opent het echte scherm in een nieuw tabblad, in voorbeeldmodus (zie voorbeeld.js).
+function customerViewCard() {
+  const tile = (href, ic, title, text) => h('a', { class: 'vb-link', href, target: '_blank', rel: 'noopener' },
+    h('span', { class: 'vb-link-ic' }, icon(ic, 20)), h('span', { class: 'vb-link-text' }, h('strong', null, title), h('small', null, text)), icon('external', 15));
+  const group = (label, ...tiles) => h('div', { class: 'vb-group' }, h('p', { class: 'vb-group-label' }, label), h('div', { class: 'vb-links' }, tiles));
+  return h('section', { class: 'card pad vb-card', id: 'klantweergave', 'aria-labelledby': 'klantweergave-title' },
+    h('div', { class: 'card-head' }, h('h2', { id: 'klantweergave-title' }, 'Zo ziet een klant het'), badge('Voorbeeld', 'purple')),
+    h('p', { class: 'muted' }, 'Bekijk wat een organisator ziet, voor en na het inloggen. Elke knop opent een nieuw tabblad en jij blijft hier gewoon ingelogd.'),
+    group('Voor het inloggen',
+      tile('../start/', 'desktop', 'Landingspagina', 'De pagina waarop een organisator binnenkomt.'),
+      tile('./?voorbeeld=aanmelden', 'edit', 'Account maken', 'Het aanmeldscherm.'),
+      tile('./?voorbeeld=inloggen', 'lock', 'Inloggen', 'Het inlogscherm.')),
+    group('Na het inloggen',
+      tile('./?voorbeeld=nieuw', 'sparkle', 'Dashboard van een nieuwe klant', 'Direct na het aanmelden: de welkomststap, één leeg concept en nog geen betaalkeuze.'),
+      tile('./?voorbeeld=actief', 'chart', 'Dashboard van een actieve klant', 'Een live event met verkopen, bestellingen, trackinglinks en uitbetalingen.')),
+    notice('info', h('strong', null, 'Dit zijn voorbeelden met verzonnen gegevens. '), 'Er wordt niets opgeslagen en het raakt geen echte klant. Je kunt er dus vrij in klikken: na herladen is alles weer zoals het begon.'));
+}
+
 // ---------- Platformbeheer: wat moet er deze week overgemaakt worden ----------
 export function viewPlatform() {
   const root = h('div', { class: 'page page-wide' }, spinner('Uitbetalingen laden'));
-  const head = (extra) => h('div', { class: 'page-head' }, h('div', null, h('p', { class: 'eyebrow' }, 'Platformbeheer'), h('h1', null, 'Uitbetalingen'), extra || null));
+  const view = customerViewCard();
+  const head = (extra) => [view, h('div', { class: 'page-head' }, h('div', null, h('p', { class: 'eyebrow' }, 'Platformbeheer'), h('h1', null, 'Uitbetalingen'), extra || null))];
   async function load() {
     let d;
     try { d = await rpc('entree_platform_payouts'); } catch (e) {

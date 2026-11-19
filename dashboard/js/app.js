@@ -1,5 +1,6 @@
 // Ingang van het dashboard: routering en het vaste kader.
-import { hasSession, onSessionLost, logout, sessionEmail } from './api.js';
+import { hasSession, onSessionLost, logout, sessionEmail, BASE } from './api.js';
+import { VOORBEELD } from './voorbeeld.js';
 import { h, icon, toast, spinner, guard, brandMark, BRAND, setTitle } from './ui.js';
 import { S, loadState, loadEvent, showPayouts, isPlatformAdmin } from './store.js';
 import { viewAuth, viewReset, viewWelcome, viewNoOrg, needsWelcome } from './auth.js';
@@ -126,6 +127,36 @@ async function draw() {
     await loadState();
     if (my === seq) mount(shell(viewHome(), 'home'));
   } catch { /* de oude gegevens blijven staan */ }
+}
+
+// ---------- klantweergave (voorbeeldmodus) ----------
+// Een vaste balk boven het dashboard. De kop en de tabs schuiven eronder (zie --vb-h in app.css).
+function voorbeeldBalk() {
+  const sluit = h('button', { class: 'vb-close', type: 'button', onclick: () => {
+    window.close();
+    // Een tabblad dat je zelf hebt geopend, mag de pagina niet sluiten: ga dan naar het gewone dashboard.
+    setTimeout(() => { if (!window.closed) location.href = location.pathname; }, 250);
+  } }, icon('x', 16), h('span', null, 'Sluiten'));
+  const bar = h('div', { class: 'vb-bar', role: 'region', 'aria-label': 'Voorbeeldweergave' },
+    h('p', null, icon('eye', 17), h('span', null, h('strong', null, 'Voorbeeld: zo ziet een klant het. '), 'Er wordt niets opgeslagen.')), sluit);
+  document.body.prepend(bar);
+  document.body.classList.add('is-voorbeeld');
+  const fit = () => document.documentElement.style.setProperty('--vb-h', bar.offsetHeight + 'px');
+  fit();
+  if ('ResizeObserver' in window) new ResizeObserver(fit).observe(bar);
+  window.addEventListener('resize', fit);
+  // De shop, de ticketpagina en de scanpagina van een voorbeeld-event bestaan niet echt.
+  document.addEventListener('click', (e) => {
+    const a = e.target.closest && e.target.closest('a[href]');
+    if (!a || !a.href.startsWith(BASE + '/t/')) return;
+    e.preventDefault();
+    toast('Dit is een voorbeeld; hier gebeurt niets. Bij een echte klant opent deze link de shop of de ticketpagina.', 'info');
+  }, true);
+}
+if (VOORBEELD) {
+  voorbeeldBalk();
+  const start = { inloggen: '#/login', aanmelden: '#/signup' }[VOORBEELD];
+  if (start) history.replaceState(null, '', location.pathname + location.search + start);
 }
 
 S.render = render;
