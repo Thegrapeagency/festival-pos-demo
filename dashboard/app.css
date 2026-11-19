@@ -4,7 +4,7 @@
 html { -webkit-text-size-adjust:100%; }
 body { margin:0; font-family:var(--font-body); font-size:16px; line-height:1.5; color:var(--ink); background:var(--cream); -webkit-font-smoothing:antialiased; }
 body.has-modal { overflow:hidden; }
-h1,h2,h3 { font-family:var(--font-display); font-weight:400; color:var(--head); letter-spacing:.01em; margin:0; line-height:1.2; }
+h1,h2,h3 { font-family:var(--font-display); font-weight:600; color:var(--head); letter-spacing:.01em; margin:0; line-height:1.2; }
 h1 { font-size:34px; }
 h2 { font-size:22px; }
 h3 { font-size:18px; }
