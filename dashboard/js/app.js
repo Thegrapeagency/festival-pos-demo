@@ -25,7 +25,7 @@ function shell(content, active) {
         showPayouts() ? link('#/uitbetalingen', 'Uitbetalingen', 'wallet', 'payouts') : null,
         link('#/settings', 'Instellingen', 'settings', 'settings'),
         isPlatformAdmin() ? link('#/platform', 'Platformbeheer', 'shield', 'platform') : null),
-      h('div', { class: 'top-right' }, org ? h('span', { class: 'org-name', title: sessionEmail() }, org) : null, out))),
+      h('div', { class: 'top-right' }, org ? h('span', { class: 'org-name', title: sessionEmail() }, org) : null, window.EntreeTheme ? window.EntreeTheme.button() : null, out))),
     h('main', { id: 'main', class: 'main', tabindex: '-1' }, content));
 }
 

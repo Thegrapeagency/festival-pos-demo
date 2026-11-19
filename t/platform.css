@@ -17,6 +17,11 @@
   --amber:#855000; --amber-soft:#FBEFD2;
   --ok:#1E6B4A; --ok-soft:#DFF0E6;
   --plum:#6B3F7A; --plum-soft:#F1E8F3;
+  /* rollen: deze wisselen mee met licht en donker (zie het blok hieronder) */
+  --on-dark:#FAF5EC; --head:var(--petrol-900); --link:var(--petrol-600); --raise:#fff;
+  --edge-ink:var(--petrol-900); --edge-accent:var(--petrol-600); --edge-hover:var(--petrol-400); --edge-soft:var(--petrol-200);
+  --apricot-pale:#F8D2B5; --gold-pale:#DCC8A0; --danger-fill:#B3361B;
+  color-scheme:light;
   /* vorm */
   --r:6px; --r-sm:4px; --r-pill:999px;
   --shadow:0 1px 2px rgba(11,46,53,.06), 0 10px 28px -12px rgba(11,46,53,.22);
@@ -28,6 +33,33 @@
   /* ruitmotief voor donkere vlakken */
   --lattice:repeating-linear-gradient(45deg, rgba(255,253,248,.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(-45deg, rgba(255,253,248,.035) 0 1px, transparent 1px 22px);
 }
+
+/* ---------- donker ----------
+   t/theme.js zet data-theme op <html>: de keuze van de bezoeker, anders de instelling
+   van het apparaat. De petrolvlakken (balk, hero) blijven zoals ze zijn; de crème
+   vlakken worden diep petrol en de tekst wordt crème. Oranje blijft het accent. */
+:root[data-theme="dark"] {
+  color-scheme:dark;
+  --cream:#07191D; --paper:#0D2B31; --sand:#133A42; --raise:#16434C;
+  --line:#1C4750; --line-strong:#2E626C; --gold-soft:#6B5A3A;
+  --petrol-50:#0F353C; --petrol-100:#174A53;
+  --ink:#F1ECDF; --ink2:#A9C2C4; --ink3:#8CA8AB;
+  --head:#FAF5EC; --link:#8ECBD1;
+  --edge-ink:#FAF5EC; --edge-accent:#73AAB2; --edge-hover:#4C828B; --edge-soft:#2B5C65;
+  --apricot-100:#3A281B; --apricot-200:#6A4226; --apricot-ink:#F4B68C;
+  --danger:#F28D74; --danger-soft:#43201A;
+  --amber:#E8B65E; --amber-soft:#3B2E12;
+  --ok:#70CB9E; --ok-soft:#15392A;
+  --plum:#CDA6DA; --plum-soft:#35233B;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 10px 28px -12px rgba(0,0,0,.6);
+  --shadow-lg:0 24px 60px -18px rgba(0,0,0,.75);
+}
+:root[data-theme="dark"] ::selection { color:#FAF5EC; }
+
+/* knop om te wisselen tussen licht en donker */
+.theme-btn { display:inline-grid; place-items:center; width:40px; height:40px; flex:none; padding:0; border:0; border-radius:var(--r-sm); background:none; color:inherit; opacity:.8; cursor:pointer; }
+.theme-btn:hover { opacity:1; background:rgba(250,245,236,.1); }
+.theme-btn svg { width:19px; height:19px; }
 
 /* ---------- woordmerk: ornament + naam, werkt met elke naam ---------- */
 .wm { display:inline-flex; align-items:center; gap:.55em; font-family:var(--font-display); font-size:21px; font-weight:400; letter-spacing:.2em; text-transform:uppercase; line-height:1; color:inherit; white-space:nowrap; }
