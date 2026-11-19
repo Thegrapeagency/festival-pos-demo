@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="nl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="robots" content="noindex" />
+<meta name="referrer" content="no-referrer" />
+<title>Je tickets</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="entree.css" />
+</head>
+<body>
+<main class="tpage" id="page">
+  <div id="banners"></div>
+
+  <div id="loading" class="skel-wrap" role="status">
+    <span class="sr-only">Je bestelling wordt opgehaald</span>
+    <div class="skel" style="height:34px;width:60%"></div>
+    <div class="skel" style="height:18px;width:75%"></div>
+    <div class="skel" style="height:230px;margin-top:26px"></div>
+  </div>
+
+  <div id="content" hidden>
+    <header class="thead">
+      <div class="brandbar" id="brandbar" hidden><img id="logo" alt="" /></div>
+      <p class="kicker" id="kicker"></p>
+      <h1 id="event-name"></h1>
+      <ul class="meta" id="meta"></ul>
+    </header>
+
+    <div id="status" aria-live="polite"></div>
+    <div class="actions" id="actions" hidden></div>
+    <section class="tickets" id="tickets" hidden></section>
+    <section class="card summary" id="summary" hidden>
+      <h2 id="summary-title"></h2>
+      <div class="lines" id="summary-lines"></div>
+      <p class="ref" id="summary-ref"></p>
+    </section>
+    <p class="foot" id="foot"></p>
+  </div>
+</main>
+
+<script src="../entree-config.js"></script>
+<script src="brand.js"></script>
+<script src="common.js"></script>
+<script src="qrcode.min.js"></script>
+<script src="ticket.js"></script>
+</body>
+</html>

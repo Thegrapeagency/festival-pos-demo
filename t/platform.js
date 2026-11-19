@@ -1,0 +1,68 @@
+// De naam en het woordmerk van het platform, gedeeld door het dashboard, de
+// landingspagina en de publieke pagina's.
+//
+// De naam staat op één plek: window.ENTREE.BRAND_NAME in /entree-config.js.
+// Het woordmerk is tekst plus een beeldmerk (ticket met poort) en werkt dus met elke naam.
+//
+//   EntreePlatform.name                 de naam
+//   EntreePlatform.wordmark()           <span class="wm"> met ornament en naam
+//   EntreePlatform.ornament('burst')    los ornament als SVG-element
+//   EntreePlatform.title('dashboard')   zet document.title op "<naam> dashboard"
+//   EntreePlatform.fill(root)           vult [data-brand-name], [data-wordmark] en [data-ornament]
+(function () {
+  'use strict';
+  var C = window.ENTREE || {};
+  var NAME = typeof C.BRAND_NAME === 'string' && C.BRAND_NAME.trim() ? C.BRAND_NAME.trim().slice(0, 40) : 'Tickets';
+
+  // Vaste tekeningen uit dit bestand (geen serverdata), dus veilig als innerHTML.
+  var ORNAMENTS = {
+    // beeldmerk: een ticket (twee inkepingen) met een getrapte poort erin
+    mark: '<svg class="orn orn-mark" viewBox="0 0 32 32" width="32" height="32" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7 4H25a3 3 0 0 1 3 3V12.5a3.5 3.5 0 0 0 0 7V25a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V19.5a3.5 3.5 0 0 0 0-7V7a3 3 0 0 1 3-3ZM10.500 23V12h2.500V9.500h6V12h2.500V23h-3.500v-6.500h-4V23Z"/></svg>',
+    // groot ornament: drie geneste getrapte poorten op een getrapte voet
+    burst: '<svg class="orn orn-burst" viewBox="0 0 240 132" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20 120L20 44L34 44L34 30L48 30L48 16L192 16L192 30L206 30L206 44L220 44L220 120M45 120L45 60L56 60L56 49L67 49L67 38L173 38L173 49L184 49L184 60L195 60L195 120M70 120L70 76L78 76L78 68L86 68L86 60L154 60L154 68L162 68L162 76L170 76L170 120"/><path d="M94 120L94 92L99 92L99 87L104 87L104 82L136 82L136 87L141 87L141 92L146 92L146 120Z" fill="currentColor" stroke="none"/><path d="M120 4V14M96 22V34M144 22V34M10 96V120M230 96V120"/><path d="M6 120.8h228M26 125.800h188M52 130.800h136"/></svg>',
+    // ruit met twee kleine ruiten, voor scheidingslijnen
+    diamond: '<svg class="orn orn-diamond" viewBox="0 0 44 12" width="44" height="12" fill="currentColor" aria-hidden="true">' +
+      '<path d="M22 0l6 6-6 6-6-6zM6 3l3 3-3 3-3-3zM38 3l3 3-3 3-3-3z"/></svg>'
+  };
+
+  function ornament(kind, cls) {
+    var t = document.createElement('template');
+    t.innerHTML = ORNAMENTS[kind] || ORNAMENTS.mark;
+    var n = t.content.firstChild;
+    if (cls) n.setAttribute('class', n.getAttribute('class') + ' ' + cls);
+    return n;
+  }
+  // Scheidingslijn: dubbele lijn, ruit in het midden.
+  function rule(cls) {
+    var d = document.createElement('div');
+    d.className = 'deco-rule' + (cls ? ' ' + cls : '');
+    d.setAttribute('aria-hidden', 'true');
+    d.appendChild(ornament('diamond'));
+    return d;
+  }
+  function wordmark(cls) {
+    var s = document.createElement('span');
+    s.className = 'wm' + (cls ? ' ' + cls : '');
+    s.appendChild(ornament('mark', 'wm-orn'));
+    var n = document.createElement('span');
+    n.className = 'wm-name';
+    n.textContent = NAME;
+    s.appendChild(n);
+    return s;
+  }
+  function title(rest) { document.title = rest ? NAME + ' ' + rest : NAME; }
+  function fill(root) {
+    root = root || document;
+    Array.prototype.forEach.call(root.querySelectorAll('[data-brand-name]'), function (n) { n.textContent = NAME; });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-wordmark]'), function (n) {
+      if (!n.querySelector('.wm')) n.appendChild(wordmark(n.getAttribute('data-wordmark') || ''));
+    });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-ornament]'), function (n) {
+      if (n.firstChild) return;
+      var kind = n.getAttribute('data-ornament');
+      n.appendChild(kind === 'rule' ? rule() : ornament(kind));
+    });
+  }
+
+  window.EntreePlatform = { name: NAME, wordmark: wordmark, ornament: ornament, rule: rule, title: title, fill: fill };
+})();
