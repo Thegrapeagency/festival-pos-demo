@@ -35,7 +35,7 @@ Actigate presenteert zich als ticketshop die je bouwt door te chatten, niet als 
 - Edge function `entree`, acties via `?a=`: shop, order, status, demo-pay, webhook, scan, reset-request, reset-confirm, connect, disconnect, refund, resend, transfer, assistant.
 - Een event dat niet live staat, is alleen met een voorbeeldlink te openen. Bestellingen daar zijn testbestellingen en tellen nergens in mee.
 - Betalen: eigen Mollie-sleutel van de organisator, of via het platform met een wekelijkse uitbetaling. Dat laatste staat uit tot `ENTREE_MOLLIE_API_KEY` en `ENTREE_PLATFORM_PAYMENTS=on` bij de function staan.
-- Chat-assistent in het dashboard (Claude, via de officiële SDK). Alleen ticketing: events, tickets, kortingscodes, huisstijl. Geen verwijderen, terugbetalen of betaalinstellingen; live zetten alleen via een bevestigknop. Begrensd per dag en per maand per organisatie.
+- Chat-assistent in het dashboard (Claude, via de officiële SDK). Alleen ticketing: events, tickets, kortingscodes, huisstijl, vragen aan de koper en trackinglinks. Hij leidt naar live (`status_naar_live`) en kan onder een antwoord knoppen naar een scherm (`links`) en de embed-code (`embed`) laten tonen. Een logo uploadt de organisator in het gesprek; dat gaat buiten Claude om (`addLogo` in `assistant.js`). Geen verwijderen, terugbetalen of betaalinstellingen; live zetten alleen via een bevestigknop. Begrensd per dag en per maand per organisatie.
 - Trackinglinks (`via=<code>`) en ticket overdragen. Voor TicketSwap is geen openbare API gevonden; dat vraagt een partnerschap.
 
 ## Testen
@@ -48,7 +48,7 @@ Nederlands, je-vorm. Geen gedachtestreepjes in zinnen, geen clichés, geen retor
 
 ## Open punten (stand 19 november 2026)
 
-- `ENTREE_BASE_URL` staat nog niet op `https://actigate.nl`. Daardoor verwijzen ticketmails en wachtwoordmails nog naar het GitHub Pages-adres. Instellen als secret bij de edge function, of het standaardadres in `handler.ts` aanpassen en opnieuw uitrollen.
+- Het standaardadres in `handler.ts` is `https://actigate.nl`. Dat geldt pas in productie na een nieuwe uitrol van de edge function `entree`.
 - Twee testorganisaties met de naam `Actigate rooktest …` en hun twee `rooktest-…@example.com`-logins staan nog in productie. Verwijderen is goedgekeurd, maar de bevestiging in Supabase verliep twee keer.
 - Het Vercel-team staat op Hobby; voor een betaald platform is Pro nodig.
 - Mailen vanaf `@actigate.nl` vraagt DNS-records van Resend. SPF staat nu op alleen Hostnet met `-all` en DMARC op `reject`.
