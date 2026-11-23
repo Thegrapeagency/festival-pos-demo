@@ -17,9 +17,9 @@
   // Standaardstijl van het platform. Zelfde kleuren als in platform.css.
   var DEFAULTS = {
     primary: '#efa36f', on_primary: '#07242a', bg: '#faf5ec', surface: '#fffdf8', text: '#14323a', radius: 6,
-    font_heading: '"Marcellus", "Optima", "Candara", "Palatino Linotype", "Book Antiqua", Palatino, Georgia, serif',
-    font_body: '"Jost", "Century Gothic", "Avenir Next", "Avenir", "Futura", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif',
-    fonts_href: 'https://fonts.googleapis.com/css2?family=Jost:wght@400;500;600;700&family=Marcellus&display=swap'
+    font_heading: '"Barlow Condensed", "Arial Narrow", "Roboto Condensed", "Helvetica Neue", Arial, sans-serif',
+    font_body: '"Barlow", "Segoe UI", system-ui, -apple-system, "Helvetica Neue", Arial, sans-serif',
+    fonts_href: 'https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap'
   };
   var NEUTRAL = { bg: '#f7f7f5', surface: '#ffffff', text: '#1f1f1f', radius: 14 };
   var OWN = ['primary', 'bg', 'surface', 'text', 'font_heading', 'font_body'];

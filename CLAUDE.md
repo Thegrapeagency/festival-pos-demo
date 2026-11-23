@@ -18,12 +18,16 @@ De technische namen heten nog `entree` (functies `entree_*`, edge function `entr
 Statische HTML, CSS en vanilla JavaScript (ES-modules), geen build-stap, geen packages.
 
 - `entree-config.js`: Supabase-adres, publieke sleutel, `BRAND_NAME`, `BASE_URL` (leeg = automatisch).
-- `t/platform.css`: ontwerpsysteem. Art deco, petrol, crème, zacht oranje accent, Marcellus voor koppen en Jost voor tekst. Het beeldmerk is een ticket met een getrapte poort (`t/platform.js`).
+- `t/platform.css`: ontwerpsysteem. Petrol, crème en een zacht oranje accent. Barlow Condensed (vet, hoofdletters) voor koppen en Barlow voor tekst: robuust en stoer, niet chic. De signatuur is het kader: doorlopende lijnen met vakken en een oranje merkteken op de hoeken (zie `start/start.css`). Geen poort-ornament, ruiten of dubbele lijnen op nieuwe schermen. Het beeldmerk is een ticket met een tekstballon; het grote ornament is een chatvenster uit kaderlijnen (`t/platform.js`).
 - Kleuren gebruik je via rollen, niet direct via het palet: `--ink`, `--ink2`, `--head`, `--link`, `--paper`, `--cream`, `--sand`, `--raise`, `--line`, `--edge-*`, `--on-dark`. Het blok `:root[data-theme="dark"]` zet ze om naar donker. Vaste petrolvlakken (bovenbalk, hero) gebruiken `--petrol-800/900/950` met `--on-dark` als tekstkleur.
 - `t/theme.js`: licht of donker, volgt het apparaat en onthoudt een eigen keuze. Staat in de `<head>`.
 - De shop, de ticketpagina en de scanner (`t/`) draaien in de huisstijl van de organisator en wisselen niet mee met licht en donker.
 - `dashboard/js/`: `app.js` (kader en routes), `api.js`, `ui.js`, `store.js`, `auth.js`, `home.js`, `event.js`, `brand.js`, `palette.js`, `orders.js`, `payouts.js`, `assistant.js`, `tracking.js`, `voorbeeld.js`.
 - Voorbeeldmodus: `dashboard/?voorbeeld=nieuw|actief|inloggen|aanmelden` toont het dashboard met voorbeelddata, zonder serververzoeken. Handig om schermen te bekijken en te screenshotten zonder backend.
+
+## Positionering
+
+Actigate presenteert zich als ticketshop die je bouwt door te chatten, niet als klassieke ticketprovider. De assistent staat centraal: het chatvenster op de landingspagina (wat je daar typt gaat via `localStorage` `actigate_start_prompt` mee naar de welkomststap), de welkomststap "Vertel wat je organiseert", de vraagbalk op de startpagina van het dashboard (`askBar` in `home.js`) en het paneel rechts (`assistant.js`, `assistantAsk()`). Vaste boodschap: geen abonnement en geen opstartkosten, de koper betaalt de servicekosten. Beloof niets wat de assistent niet kan (zie de tools in `assistant.ts`).
 
 ## Backend in het kort
 

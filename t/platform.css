@@ -23,15 +23,15 @@
   --apricot-pale:#F8D2B5; --gold-pale:#DCC8A0; --danger-fill:#B3361B;
   color-scheme:light;
   /* vorm */
-  --r:6px; --r-sm:4px; --r-pill:999px;
+  --r:2px; --r-sm:2px; --r-pill:999px;
   --shadow:0 1px 2px rgba(11,46,53,.06), 0 10px 28px -12px rgba(11,46,53,.22);
   --shadow-lg:0 24px 60px -18px rgba(7,36,42,.45);
   /* typografie */
-  --font-display:'Marcellus','Optima','Candara','Palatino Linotype','Book Antiqua',Palatino,Georgia,serif;
-  --font-body:'Jost','Century Gothic','Avenir Next','Avenir','Futura','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
+  --font-display:'Barlow Condensed','Arial Narrow','Roboto Condensed','Helvetica Neue',Arial,sans-serif;
+  --font-body:'Barlow','Segoe UI',system-ui,-apple-system,'Helvetica Neue',Arial,sans-serif;
   --font-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  /* ruitmotief voor donkere vlakken */
-  --lattice:repeating-linear-gradient(45deg, rgba(255,253,248,.035) 0 1px, transparent 1px 22px), repeating-linear-gradient(-45deg, rgba(255,253,248,.035) 0 1px, transparent 1px 22px);
+  /* geen patroon meer op donkere vlakken; de naam blijft bestaan voor oudere regels */
+  --lattice:linear-gradient(transparent,transparent);
 }
 
 /* ---------- donker ----------
@@ -62,7 +62,7 @@
 .theme-btn svg { width:19px; height:19px; }
 
 /* ---------- woordmerk: ornament + naam, werkt met elke naam ---------- */
-.wm { display:inline-flex; align-items:center; gap:.55em; font-family:var(--font-display); font-size:21px; font-weight:400; letter-spacing:.2em; text-transform:uppercase; line-height:1; color:inherit; white-space:nowrap; }
+.wm { display:inline-flex; align-items:center; gap:.5em; font-family:var(--font-display); font-size:24px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; line-height:1; color:inherit; white-space:nowrap; }
 .wm-orn { width:1.5em; height:1.5em; color:var(--apricot); flex:none; }
 .wm-name { padding-top:.08em; }
 .wm-stack { flex-direction:column; gap:.5em; }
@@ -72,12 +72,11 @@
 /* ---------- ornamenten ---------- */
 .orn { display:block; }
 .orn-burst { width:100%; height:auto; }
-.deco-rule { display:flex; align-items:center; gap:14px; color:var(--gold); }
-.deco-rule::before, .deco-rule::after { content:''; flex:1; height:4px; border-top:1px solid currentColor; border-bottom:1px solid currentColor; opacity:.55; }
+.deco-rule { display:flex; color:var(--apricot-600); }
 .deco-rule .orn { flex:none; }
 .deco-rule.is-short { max-width:220px; }
 .deco-rule.is-center { margin-left:auto; margin-right:auto; }
 .eyebrow { font-family:var(--font-body); font-size:12.5px; font-weight:600; letter-spacing:.18em; text-transform:uppercase; color:var(--apricot-ink); }
 /* dubbele lijst, zoals om een affiche */
 .deco-frame { position:relative; }
-.deco-frame::before { content:''; position:absolute; inset:5px; border:1px solid var(--gold-soft); border-radius:calc(var(--r) - 2px); pointer-events:none; }
+.deco-frame::before { content:none; }
