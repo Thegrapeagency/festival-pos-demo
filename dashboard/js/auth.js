@@ -2,24 +2,35 @@
 import { login, signup, logout, fnPublic, rpc, sessionEmail } from './api.js';
 import { h, icon, toast, guard, field, setError, fromLocalInput, BRAND, brandMark, ornament, decoRule } from './ui.js';
 import { S, loadState, local } from './store.js';
+import { assistantAsk } from './assistant.js';
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/;
 
+// Het voorbeeldgesprek naast het formulier: zo bouw je een shop door te typen.
+function chatDemo() {
+  const me = (text) => h('p', { class: 'cd-msg is-me' }, text);
+  const bot = (...kids) => h('div', { class: 'cd-msg is-bot' }, kids);
+  return h('div', { class: 'cd', 'aria-hidden': 'true' },
+    h('div', { class: 'cd-head' }, h('span', null, `${BRAND} assistent`), h('i')),
+    h('div', { class: 'cd-body' },
+      me('Zomerfeest op 26 juni in het Stadspark. Tickets € 25, early bird € 19,50 tot 1 mei.'),
+      bot(h('p', null, 'Je shop staat klaar als concept:'),
+        h('ul', null, h('li', null, 'Event met datum en locatie'), h('li', null, 'Regulier € 25,00'), h('li', null, 'Early bird € 19,50, tot 1 mei'))),
+      me('Maak de shop donkergroen met een crème achtergrond.'),
+      bot(h('p', null, 'Gedaan. Bekijk het voorbeeld en zet de verkoop live als het klopt.'))),
+    h('div', { class: 'cd-foot' }, h('span', null, 'Typ wat je wilt regelen'), h('i')));
+}
+
 function frame(card) {
-  const step = (n, title, text) => h('li', null, h('span', { class: 'step-n', 'aria-hidden': 'true' }, n), h('div', null, h('strong', null, title), h('p', null, text)));
   return h('div', { class: 'auth' },
     h('main', { class: 'auth-main' },
       h('a', { class: 'logo', href: '../start/', 'aria-label': `${BRAND}, naar de website` }, brandMark()),
       card),
     h('aside', { class: 'auth-side' }, h('div', { class: 'auth-side-in' },
-      ornament('burst'),
-      h('h2', null, 'Zelf tickets verkopen, in je eigen huisstijl'),
-      decoRule(),
-      h('ol', { class: 'steps' },
-        step('1', 'Maak je event en je tickets', 'Prijzen, aantallen, kortingscodes en vragen aan de koper stel je zelf in.'),
-        step('2', 'Zet je huisstijl erop', 'Upload je logo of stijlgids. Kleuren en lettertypes nemen we voor je over.'),
-        step('3', 'Plak de shop op je site', 'Je krijgt een regel code voor je website en een link voor je socials.')),
-      h('p', { class: 'auth-foot' }, 'Je kiest zelf hoe je betaald wordt: op je eigen Mollie-rekening of elke week een uitbetaling van ons. Gratis tickets kosten niets.'))));
+      h('p', { class: 'eyebrow' }, 'Ticketverkoop met een assistent'),
+      h('h2', null, 'Bouw je ticketshop door te chatten'),
+      chatDemo(),
+      h('p', { class: 'auth-foot' }, 'Geen abonnement en geen opstartkosten. De servicekosten betaalt de koper, per ticket.'))));
 }
 
 function pwField(label, auto) {
@@ -174,7 +185,7 @@ export function viewWelcome() {
   const name = h('input', { type: 'text', required: true, maxlength: '80', placeholder: 'Bijvoorbeeld: Zomerfeest 2027' });
   const start = h('input', { type: 'datetime-local' });
   const loc = h('input', { type: 'text', maxlength: '160', placeholder: 'Bijvoorbeeld: Griftpark, Utrecht' });
-  const btn = h('button', { class: 'btn btn-primary btn-block', type: 'submit' }, 'Aan de slag');
+  const btn = h('button', { class: 'btn btn-block', type: 'submit' }, 'Aan de slag');
   const skip = h('button', { class: 'link-btn', type: 'button', onclick: () => { local.set(doneKey(), '1'); location.hash = '#/'; S.render(); } }, 'Dit vul ik later in');
   const form = h('form', { class: 'auth-card welcome', novalidate: true, onsubmit: async (e) => {
     e.preventDefault();
@@ -189,14 +200,32 @@ export function viewWelcome() {
     });
     if (ok) { toast('Je event staat klaar. Voeg nu je tickets toe.'); location.hash = `#/event/${ev.id}/overzicht`; S.render(); }
   } },
-    ornament('burst'),
-    h('p', { class: 'eyebrow' }, `Welkom bij ${BRAND}`),
-    h('h1', null, 'Vertel iets over je eerste event'),
-    decoRule('is-short is-center'),
+    h('p', { class: 'eyebrow' }, 'Liever zelf invullen'),
+    h('h2', null, 'De gegevens van je event'),
     h('p', { class: 'muted' }, `Je account voor ${S.state.org.name} is klaar. Met deze drie gegevens maken we je event aan. Alles kun je later nog aanpassen.`),
     field('Naam van je event', name),
     field('Wanneer begint het', start, { optional: true }),
     field('Waar is het', loc, { optional: true }),
     btn, h('p', { class: 'auth-alt' }, skip));
-  return h('div', { class: 'auth auth-solo' }, h('main', { class: 'auth-main' }, h('span', { class: 'logo' }, brandMark()), form));
+  // Chat eerst: beschrijf je event in één zin en de assistent richt het in.
+  const START = 'actigate_start_prompt';
+  let seed = '';
+  try { seed = String(localStorage.getItem(START) || '').slice(0, 800); } catch { /* geen opslag */ }
+  const say = h('textarea', { rows: '3', maxlength: '800', placeholder: 'Bijvoorbeeld: Zomerfeest op 26 juni in het Stadspark. Tickets € 25, early bird € 19,50 tot 1 mei.', 'aria-label': 'Vertel wat je organiseert' });
+  say.value = seed;
+  const build = h('button', { class: 'btn btn-primary btn-block', type: 'submit' }, 'Bouw mijn shop', icon('right', 16));
+  const chat = h('form', { class: 'auth-card welcome welcome-chat', novalidate: true, onsubmit: (e) => {
+    e.preventDefault();
+    const v = say.value.trim();
+    if (!v) return say.focus();
+    try { localStorage.removeItem(START); } catch { /* geen opslag */ }
+    local.set(doneKey(), '1');
+    assistantAsk(v, { eventId: ev.id, prefix: `Dit is mijn eerste event. Het lege concept-event "${ev.name}" is hiervoor bedoeld: gebruik dat, geef het de juiste naam, datum en locatie en maak de tickets erin aan. ` });
+    location.hash = `#/event/${ev.id}/overzicht`; S.render();
+  } },
+    h('p', { class: 'eyebrow' }, `Welkom bij ${BRAND}`),
+    h('h1', null, 'Vertel wat je organiseert'),
+    h('p', { class: 'muted' }, 'Eén of twee zinnen is genoeg: wat, wanneer, waar en wat een ticket kost. Je assistent maakt het event en de tickets aan. Daarna kun je alles nog aanpassen.'),
+    say, build);
+  return h('div', { class: 'auth auth-solo' }, h('main', { class: 'auth-main' }, h('span', { class: 'logo' }, brandMark()), h('div', { class: 'welcome-stack' }, chat, form)));
 }

@@ -2,7 +2,7 @@
 // landingspagina en de publieke pagina's.
 //
 // De naam staat op één plek: window.ENTREE.BRAND_NAME in /entree-config.js.
-// Het woordmerk is tekst plus een beeldmerk (ticket met poort) en werkt dus met elke naam.
+// Het woordmerk is tekst plus een beeldmerk (ticket met tekstballon) en werkt dus met elke naam.
 //
 //   EntreePlatform.name                 de naam
 //   EntreePlatform.wordmark()           <span class="wm"> met ornament en naam
@@ -16,13 +16,12 @@
 
   // Vaste tekeningen uit dit bestand (geen serverdata), dus veilig als innerHTML.
   var ORNAMENTS = {
-    // beeldmerk: een ticket (twee inkepingen) met een getrapte poort erin
-    mark: '<svg class="orn orn-mark" viewBox="0 0 32 32" width="32" height="32" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7 4H25a3 3 0 0 1 3 3V12.5a3.5 3.5 0 0 0 0 7V25a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V19.5a3.5 3.5 0 0 0 0-7V7a3 3 0 0 1 3-3ZM10.500 23V12h2.500V9.500h6V12h2.500V23h-3.500v-6.500h-4V23Z"/></svg>',
-    // groot ornament: drie geneste getrapte poorten op een getrapte voet
-    burst: '<svg class="orn orn-burst" viewBox="0 0 240 132" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20 120L20 44L34 44L34 30L48 30L48 16L192 16L192 30L206 30L206 44L220 44L220 120M45 120L45 60L56 60L56 49L67 49L67 38L173 38L173 49L184 49L184 60L195 60L195 120M70 120L70 76L78 76L78 68L86 68L86 60L154 60L154 68L162 68L162 76L170 76L170 120"/><path d="M94 120L94 92L99 92L99 87L104 87L104 82L136 82L136 87L141 87L141 92L146 92L146 120Z" fill="currentColor" stroke="none"/><path d="M120 4V14M96 22V34M144 22V34M10 96V120M230 96V120"/><path d="M6 120.8h228M26 125.800h188M52 130.800h136"/></svg>',
-    // ruit met twee kleine ruiten, voor scheidingslijnen
-    diamond: '<svg class="orn orn-diamond" viewBox="0 0 44 12" width="44" height="12" fill="currentColor" aria-hidden="true">' +
-      '<path d="M22 0l6 6-6 6-6-6zM6 3l3 3-3 3-3-3zM38 3l3 3-3 3-3-3z"/></svg>'
+    // beeldmerk: een ticket (twee inkepingen) met een tekstballon erin
+    mark: '<svg class="orn orn-mark" viewBox="0 0 32 32" width="32" height="32" fill="currentColor" aria-hidden="true"><path fill-rule="evenodd" d="M7 4H25a3 3 0 0 1 3 3V12.5a3.5 3.5 0 0 0 0 7V25a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V19.5a3.5 3.5 0 0 0 0-7V7a3 3 0 0 1 3-3ZM11 10h10a1.500 1.500 0 0 1 1.500 1.500v6a1.500 1.500 0 0 1-1.500 1.500h-4.500l-3.500 3v-3H11a1.500 1.500 0 0 1-1.500-1.500v-6A1.500 1.500 0 0 1 11 10Z"/></svg>',
+    // groot ornament: een chatvenster uit kaderlijnen, met drie berichten en een invoerregel
+    burst: '<svg class="orn orn-burst" viewBox="0 0 240 132" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M20 6h200v120H20zM20 28h200M20 102h200"/><path d="M32 17h28" stroke-width="3"/><path d="M36 42h92v18H36zM112 68h92v18h-92z"/><path d="M48 51h56M124 77h44" stroke-width="2"/><path d="M36 114h120" stroke-width="2" opacity=".5"/><path d="M186 108h18v12h-18z" fill="currentColor" stroke="none"/></svg>',
+    // kort oranje merkteken voor onder een kop
+    diamond: '<svg class="orn orn-diamond" viewBox="0 0 44 12" width="44" height="12" fill="currentColor" aria-hidden="true"><path d="M0 4h44v4H0z"/></svg>'
   };
 
   function ornament(kind, cls) {

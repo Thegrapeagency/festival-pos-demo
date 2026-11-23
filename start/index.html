@@ -3,10 +3,10 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Tickets verkopen in je eigen huisstijl</title>
-<meta name="description" content="Maak zelf in een paar minuten een ticketshop in je eigen huisstijl en zet hem op je eigen site. Geen abonnement: de koper betaalt servicekosten per betaald ticket." />
+<title>Bouw je ticketshop door te chatten</title>
+<meta name="description" content="Typ wat je organiseert en je assistent bouwt je ticketshop: event, tickets en huisstijl. Geen abonnement; de koper betaalt de servicekosten per ticket." />
 <meta name="theme-color" content="#0B2E35" />
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B2E35'/%3E%3Cpath fill='%23EFA36F' fill-rule='evenodd' transform='translate%283.2 3.2%29 scale%28.8%29' d='M7 4H25a3 3 0 0 1 3 3V12.5a3.5 3.5 0 0 0 0 7V25a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V19.5a3.5 3.5 0 0 0 0-7V7a3 3 0 0 1 3-3ZM10.500 23V12h2.500V9.500h6V12h2.500V23h-3.500v-6.500h-4V23Z'/%3E%3C/svg%3E" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%230B2E35'/%3E%3Cpath fill='%23EFA36F' fill-rule='evenodd' transform='translate%283.2 3.2%29 scale%28.8%29' d='M7 4H25a3 3 0 0 1 3 3V12.5a3.5 3.5 0 0 0 0 7V25a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V19.5a3.5 3.5 0 0 0 0-7V7a3 3 0 0 1 3-3ZM11 10h10a1.500 1.500 0 0 1 1.500 1.500v6a1.500 1.500 0 0 1-1.500 1.500h-4.500l-3.500 3v-3H11a1.500 1.500 0 0 1-1.500-1.500v-6A1.500 1.500 0 0 1 11 10Z'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -22,7 +22,7 @@
     <a class="top-logo" href="./" data-wordmark aria-label="Naar het begin van de pagina"></a>
     <nav class="top-nav" aria-label="Op deze pagina">
       <a href="#zo-werkt-het">Zo werkt het</a>
-      <a href="#wat-erin-zit">Wat erin zit</a>
+      <a href="#wat-je-vraagt">Wat je kunt vragen</a>
       <a href="#prijs">Prijs</a>
     </nav>
     <div class="top-cta">
@@ -37,21 +37,29 @@
   <section class="hero">
     <div class="wrap hero-in">
       <div class="hero-text">
-        <p class="eyebrow">Ticketverkoop voor organisatoren</p>
-        <h1>Je eigen ticketshop, op je eigen site</h1>
-        <p class="lead">Richt je event in, zet je huisstijl erop en plak één regel code op je website. Je kopers blijven bij jou en krijgen hun tickets per mail.</p>
-        <div class="hero-cta">
-          <a class="btn btn-primary btn-lg" href="../dashboard/#/signup">Maak gratis een account</a>
-          <a class="link-arrow" href="#zo-werkt-het">Bekijk hoe het werkt</a>
-        </div>
+        <p class="eyebrow">Ticketverkoop met een assistent</p>
+        <h1>Bouw je ticketshop door te chatten</h1>
+        <p class="lead">Typ wat je organiseert. Je assistent maakt het event, de tickets en de shop in jouw kleuren. Jij betaalt geen abonnement: de servicekosten betaalt de koper.</p>
+        <ul class="hero-facts">
+          <li>Shop klaar in een paar minuten</li>
+          <li>Op je eigen site of als losse link</li>
+          <li>Geen abonnement, geen opstartkosten</li>
+        </ul>
       </div>
-      <div class="hero-art" aria-hidden="true">
-        <div class="tk">
-          <div class="tk-row"><span>Toegangsbewijs</span><span>Nr. 0001</span></div>
-          <p class="tk-title">Jouw event</p>
-          <div class="tk-row tk-meta"><span>Jouw datum</span><span>Jouw locatie</span></div>
-          <div class="tk-foot"><span>Jouw huisstijl</span><i></i></div>
+      <div class="chat" id="begin">
+        <div class="chat-head"><span><span data-brand-name>Actigate</span> assistent</span><i></i></div>
+        <div class="chat-body" aria-hidden="true">
+          <p class="msg is-me">Zomerfeest op 26 juni in het Stadspark. Tickets € 25, early bird € 19,50 tot 1 mei.</p>
+          <div class="msg is-bot"><p>Je shop staat klaar als concept:</p><ul><li>Zomerfeest, za 26 juni, Stadspark</li><li>Regulier € 25,00</li><li>Early bird € 19,50, tot 1 mei</li></ul></div>
+          <p class="msg is-me">Maak hem donkergroen en voeg code VROEG10 toe voor 10% korting.</p>
+          <div class="msg is-bot"><p>Gedaan. Bekijk het voorbeeld en zet de verkoop live als het klopt.</p></div>
         </div>
+        <form class="chat-form" id="start-form" novalidate>
+          <label class="sr" for="start-input">Vertel wat je organiseert</label>
+          <textarea id="start-input" rows="2" maxlength="800" placeholder="Vertel wat je organiseert"></textarea>
+          <button class="btn btn-primary" type="submit">Bouw mijn shop</button>
+        </form>
+        <p class="chat-note">Je maakt eerst een gratis account. Daarna gaat je assistent hiermee aan de slag.</p>
       </div>
     </div>
   </section>
@@ -60,74 +68,75 @@
     <div class="wrap">
       <header class="section-head">
         <p class="eyebrow">Zo werkt het</p>
-        <h2>In drie stappen in de verkoop</h2>
+        <h2>Van één zin naar een shop die verkoopt</h2>
       </header>
       <ol class="cells cells-3">
-        <li><span class="step-n">01</span><h3>Richt je event in</h3><p>Naam, datum en locatie. Per ticket kies je de prijs, het aantal en de verkoopperiode.</p></li>
-        <li><span class="step-n">02</span><h3>Zet je huisstijl erop</h3><p>Upload je logo of stijlgids. De shop neemt je kleuren en lettertypes over, en je ziet het resultaat direct.</p></li>
-        <li><span class="step-n">03</span><h3>Plak de code op je site</h3><p>Eén regel voor WordPress, Wix, Squarespace of een andere website. Heb je geen site, dan deel je de link.</p></li>
+        <li><span class="step-n">01</span><h3>Typ wat je organiseert</h3><p>Wat, wanneer, waar en wat een ticket kost. In gewone woorden, zoals je het een collega zou vertellen.</p></li>
+        <li><span class="step-n">02</span><h3>Je assistent bouwt de shop</h3><p>Event, tickets, kortingscodes en kleuren staan er binnen een minuut. Wil je iets anders, dan zeg je dat.</p></li>
+        <li><span class="step-n">03</span><h3>Zet hem online</h3><p>Plak één regel code op je website of deel de link. Kopers krijgen hun tickets met QR-code per mail.</p></li>
       </ol>
       <pre class="code" tabindex="0" aria-label="Voorbeeld van de embed-code"><code id="embed-code">&lt;div data-entree-shop="jouw-event"&gt;&lt;/div&gt;
 &lt;script async src="/embed.js"&gt;&lt;/script&gt;</code></pre>
     </div>
   </section>
 
-  <section class="section section-tint" id="wat-erin-zit">
+  <section class="section section-tint" id="wat-je-vraagt">
+    <div class="wrap">
+      <header class="section-head">
+        <p class="eyebrow">Wat je kunt vragen</p>
+        <h2>Geen menu's doorzoeken. Gewoon zeggen wat je wilt.</h2>
+      </header>
+      <ul class="cells cells-2 asks">
+        <li><p class="q">Maak een ticket voor de zaterdag van € 75, 700 beschikbaar.</p><p>Het ticket staat er, met prijs en voorraad.</p></li>
+        <li><p class="q">Laat de early birds twee weken langer lopen.</p><p>De verkoopperiode schuift op. Jij hoeft geen datum op te zoeken.</p></li>
+        <li><p class="q">Maak een kortingscode VROEG10 voor 10% korting.</p><p>Met een maximum en een looptijd als je dat erbij zegt.</p></li>
+        <li><p class="q">Zet de kleur van mijn shop op donkergroen.</p><p>Je ziet het resultaat direct in het voorbeeld van je shop.</p></li>
+      </ul>
+      <p class="aside pad-b">Liever klikken? Alles wat de assistent doet, kun je ook zelf in het dashboard. Live zetten gebeurt pas als jij het bevestigt, en verwijderen of terugbetalen doe je altijd zelf.</p>
+    </div>
+  </section>
+
+  <section class="section" id="wat-erin-zit">
     <div class="wrap">
       <header class="section-head">
         <p class="eyebrow">Wat erin zit</p>
         <h2>Alles voor een avond, een festival of een reeks</h2>
       </header>
-      <ul class="cells cells-2">
-        <li><h3>Kortingscodes</h3><p>Een percentage of een vast bedrag, met een maximum en een looptijd.</p></li>
-        <li><h3>Duotickets en verborgen tickets</h3><p>Eén ticket voor meerdere personen, of tickets die je alleen met een code ziet.</p></li>
-        <li><h3>Vragen aan de koper</h3><p>Stel bij het afrekenen je eigen vragen, zoals dieetwensen.</p></li>
-        <li><h3>Testbestelling vooraf</h3><p>Bestel in het voorbeeld een ticket zonder te betalen en zie wat je koper krijgt.</p></li>
+      <ul class="cells cells-3 feats">
+        <li><h3>Jouw huisstijl</h3><p>Upload je logo of stijlgids. De shop, het ticket en de mail nemen je kleuren en lettertypes over.</p></li>
         <li><h3>Scanner zonder app</h3><p>Je deurmedewerker opent een scanlink op zijn telefoon. Een account is niet nodig.</p></li>
-        <li><h3>Bestellingen en terugbetalen</h3><p>Zoek, exporteer naar Excel en betaal een bestelling terug vanuit je dashboard.</p></li>
+        <li><h3>Testbestelling vooraf</h3><p>Bestel in het voorbeeld een ticket zonder te betalen en zie wat je koper krijgt.</p></li>
+        <li><h3>Trackinglinks</h3><p>Zie welke post, mail of pagina kliks en tickets oplevert.</p></li>
+        <li><h3>Duo- en verborgen tickets</h3><p>Eén ticket voor meerdere personen, of tickets die je alleen met een code ziet.</p></li>
+        <li><h3>Bestellingen in de hand</h3><p>Zoeken, exporteren naar Excel, terugbetalen en een ticket overdragen.</p></li>
       </ul>
     </div>
   </section>
 
-  <section class="section" id="betaald-worden">
-    <div class="wrap">
-      <header class="section-head">
-        <p class="eyebrow">Betaald worden</p>
-        <h2>Twee manieren, jij kiest</h2>
-      </header>
-      <div class="cells cells-2">
-        <article>
-          <h3>Laat ons uitbetalen</h3>
-          <p>Kopers betalen aan <span data-brand-name>het platform</span> en wij maken je saldo elke week over. Je vult alleen je IBAN in. De servicekosten zijn er dan al af.</p>
-          <p class="note">Of deze optie voor jou aan staat, zie je in je dashboard bij Instellingen.</p>
-        </article>
-        <article>
-          <h3>Je eigen Mollie-account</h3>
-          <p>Je koppelt Mollie met een API-sleutel en het ticketgeld komt rechtstreeks op je eigen rekening. Voor de servicekosten krijg je achteraf een factuur.</p>
-          <p class="note">Mollie rekent zelf een klein bedrag per betaling.</p>
-        </article>
-      </div>
-    </div>
-  </section>
-
   <section class="section section-petrol" id="prijs">
-    <div class="wrap price">
-      <div>
-        <p class="eyebrow">Prijs</p>
-        <h2>Geen abonnement</h2>
+    <div class="wrap">
+      <div class="price">
+        <div>
+          <p class="eyebrow">Prijs</p>
+          <h2>Jij betaalt geen abonnement</h2>
+        </div>
+        <div class="price-main">
+          <p class="price-amount"><span>€ 1,00</span> per betaald ticket, voor de koper</p>
+          <p class="price-sub">De koper betaalt de servicekosten bovenop de ticketprijs. Geen opstartkosten, geen maandbedrag. Gratis tickets kosten niets. Het actuele bedrag staat altijd in je dashboard.</p>
+        </div>
       </div>
-      <div class="price-main">
-        <p class="price-amount"><span>€ 1,00</span> per betaald ticket</p>
-        <p class="price-sub">Servicekosten, betaald door de koper bovenop de ticketprijs. Gratis tickets kosten niets. Het actuele bedrag staat altijd in je dashboard.</p>
+      <div class="cells cells-2">
+        <article><h3>Laat ons uitbetalen</h3><p>Kopers betalen aan <span data-brand-name>het platform</span> en wij maken je saldo elke week over. Je vult alleen je IBAN in.</p><p class="note">Of deze optie voor jou aan staat, zie je in je dashboard bij Instellingen.</p></article>
+        <article><h3>Of je eigen Mollie-account</h3><p>Het ticketgeld komt rechtstreeks op je eigen rekening. Voor de servicekosten krijg je achteraf een factuur.</p><p class="note">Mollie rekent zelf een klein bedrag per betaling.</p></article>
       </div>
     </div>
   </section>
 
   <section class="section cta">
     <div class="wrap cta-in">
-      <h2>Zet je eerste event klaar</h2>
+      <h2>Zeg wat je organiseert. De rest staat er zo.</h2>
       <p>Een account is gratis. Je kunt alles inrichten en testen voordat je live gaat.</p>
-      <a class="btn btn-primary btn-lg" href="../dashboard/#/signup">Maak gratis een account</a>
+      <a class="btn btn-primary btn-lg" href="#begin">Begin met typen</a>
     </div>
   </section>
 </main>

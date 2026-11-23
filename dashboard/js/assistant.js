@@ -4,7 +4,7 @@
 // **vet** en regels die met "- " beginnen krijgen opmaak, opgebouwd uit losse elementen.
 import { rpc, fn } from './api.js';
 import { VOORBEELD } from './voorbeeld.js';
-import { h, icon, ornament, notice, BRAND } from './ui.js';
+import { h, icon, ornament, notice, toast, BRAND } from './ui.js';
 import { S, loadState } from './store.js';
 
 const MAX_CHARS = 1000;      // de server weigert langere berichten
@@ -36,6 +36,7 @@ let remaining = null;
 let pending = null;      // AbortController van het lopende verzoek
 let ui = null;
 let idSeq = 0;
+let ask = null;          // { text, eventId, prefix }: een vraag die elders is getypt en hier verstuurd moet worden
 
 const mobile = () => window.matchMedia('(max-width:640px)').matches;
 const newId = () => 'm' + Date.now().toString(36) + (++idSeq);
@@ -79,7 +80,7 @@ function currentEvent() {
 // ---------- opbouw ----------
 function build() {
   const fab = h('button', { class: 'assist-fab', type: 'button', 'aria-haspopup': 'dialog', 'aria-expanded': 'false', 'aria-controls': 'assist-panel', onclick: () => setOpen(true) },
-    ornament('mark', 'assist-fab-orn'), h('span', null, `Vraag het ${BRAND}`));
+    ornament('mark', 'assist-fab-orn'), h('span', null, 'Chat met je assistent'));
 
   const fresh = h('button', { class: 'assist-new', type: 'button', onclick: newChat }, icon('plus', 15), h('span', null, 'Nieuw gesprek'));
   const close = h('button', { class: 'icon-btn assist-close', type: 'button', 'aria-label': 'Assistent sluiten', title: 'Sluiten', onclick: () => setOpen(false) }, icon('x', 20));
@@ -88,7 +89,7 @@ function build() {
 
   const emptyEl = h('div', { class: 'assist-empty' },
     ornament('burst', 'assist-burst'),
-    h('h3', null, 'Zeg wat je wilt regelen'),
+    h('h3', null, 'Bouw en beheer je shop door te typen'),
     h('p', { class: 'assist-lead' }, 'Typ in gewone woorden wat er moet veranderen aan je tickets, kortingscodes, eventgegevens of huisstijl, dan pas ik het voor je aan.'),
     h('p', { class: 'assist-label', id: 'assist-ex' }, 'Voorbeelden om mee te beginnen'),
     h('ul', { class: 'assist-examples', 'aria-labelledby': 'assist-ex' }, EXAMPLES.map((t) => h('li', null,
@@ -324,11 +325,11 @@ function history() {
   return msgs.filter((m) => m.kind === 'text' && !m.failed).map((m) => ({ role: m.role, content: m.text }));
 }
 
-async function send() {
+async function send(extra) {
   const text = ui.input.value.trim();
   if (busy || blocked || !text || ui.input.value.length > MAX_CHARS) return;
-  const ev = currentEvent();
-  const payload = { message: text, history: history() };
+  const ev = extra && extra.eventId ? { id: extra.eventId } : currentEvent();
+  const payload = { message: ((extra && extra.prefix) || '') + text, history: history() };
   if (ev) payload.event_id = ev.id;
   const mine = push({ role: 'user', kind: 'text', text });
   ui.input.value = '';
@@ -445,7 +446,37 @@ function check() {
       blocked = d.platform_budget_left === false ? 'budget' : remaining === 0 ? 'daily_limit' : null;
     }
     assistantSync(lastAllowed);
-  }).catch(() => { if (my === checkSeq) status = { enabled: false }; });
+    settle();
+  }).catch(() => { if (my === checkSeq) { status = { enabled: false }; settle(); } });
+}
+
+// Zodra bekend is of de assistent aan staat: de startpagina opnieuw tekenen (daar staat de vraagbalk)
+// en een vraag die nog klaarstond afhandelen.
+function settle() {
+  const on = status && status.enabled === true;
+  if (ask && !on) { ask = null; toast('De assistent is nu niet beschikbaar. Je kunt alles hier zelf instellen.', 'info'); }
+  if (lastAllowed && on && route().page === 'home' && !document.querySelector('.modal-back')) S.render();
+}
+function flushAsk() {
+  if (!ask || !ui || busy) return;
+  const a = ask; ask = null;
+  setOpen(true);
+  if (blocked) return;
+  ui.input.value = a.text.slice(0, MAX_CHARS);
+  paintComposer();
+  send(a);
+}
+// Staat de assistent aan? 'on', 'off' of 'pending' (nog niet bekend).
+export function assistantState() {
+  return !status || status === 'pending' ? 'pending' : status.enabled ? 'on' : 'off';
+}
+// Een vraag die op een pagina is getypt, in het paneel versturen. eventId en prefix zijn optioneel.
+export function assistantAsk(text, opts) {
+  const s = String(text || '').trim();
+  if (!s) return;
+  ask = { text: s, eventId: (opts && opts.eventId) || '', prefix: (opts && opts.prefix) || '' };
+  if (assistantState() === 'off') { settle(); return; }
+  flushAsk();
 }
 
 let lastAllowed = false;
@@ -460,13 +491,14 @@ export function assistantSync(allowed) {
   ui.root.hidden = false;
   document.body.classList.toggle('has-assist', open);
   paintLog(); paintComposer();
+  flushAsk();
 }
 
 // Uitloggen of een verlopen sessie: gesprek weg, bij de volgende login opnieuw vragen of de assistent aan staat.
 export function assistantReset() {
   checkSeq++;
   if (pending) { const p = pending; pending = null; p.abort(); }
-  status = null; owner = null; blocked = null; remaining = null; busy = false; open = false; lastAllowed = false;
+  ask = null; status = null; owner = null; blocked = null; remaining = null; busy = false; open = false; lastAllowed = false;
   forget();
   document.body.classList.remove('has-assist');
   if (ui) { clearTimeout(ui.waitTimer); ui.root.remove(); ui = null; }

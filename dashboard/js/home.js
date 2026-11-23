@@ -4,6 +4,7 @@ import { h, icon, toast, guard, field, setError, badge, notice, empty, openModal
 import { paymentsSection } from './payouts.js';
 import { S, loadState } from './store.js';
 import { doLogout } from './app.js';
+import { assistantAsk, assistantState } from './assistant.js';
 
 export function statusBadge(e) {
   if (e.archived) return badge('Gearchiveerd', 'grey');
@@ -55,6 +56,20 @@ function eventCard(e) {
         h('div', null, h('dt', null, 'Omzet'), h('dd', null, euro(e.revenue_cents))))));
 }
 
+// De vraagbalk: typ wat je wilt regelen, de assistent voert het uit in het paneel rechts.
+export function askBar(examples, opts) {
+  if (assistantState() !== 'on') return null;
+  const o = opts || {};
+  const input = h('input', { type: 'text', maxlength: '800', placeholder: o.placeholder || 'Typ wat je wilt regelen', 'aria-label': 'Je vraag aan de assistent', autocomplete: 'off' });
+  const go = (text) => { const v = String(text || '').trim(); if (!v) return input.focus(); input.value = ''; assistantAsk(v, o.ask); };
+  return h('section', { class: 'ask' },
+    h('p', { class: 'eyebrow' }, 'Je assistent'),
+    h('h2', null, o.title || 'Wat wil je regelen?'),
+    h('form', { class: 'ask-form', novalidate: true, onsubmit: (e) => { e.preventDefault(); go(input.value); } },
+      input, h('button', { class: 'btn btn-primary', type: 'submit' }, 'Vraag het', icon('right', 16))),
+    h('ul', { class: 'ask-ex', 'aria-label': 'Voorbeelden' }, examples.map((t) => h('li', null, h('button', { type: 'button', onclick: () => go(t) }, t)))));
+}
+
 export function viewHome() {
   const s = S.state;
   const active = s.events.filter((e) => !e.archived);
@@ -62,6 +77,10 @@ export function viewHome() {
   const add = h('button', { class: 'btn btn-primary', type: 'button', onclick: newEventModal }, icon('plus', 17), 'Nieuw event');
   return h('div', { class: 'page' },
     h('div', { class: 'page-head' }, h('div', null, h('h1', null, 'Je events'), h('p', { class: 'muted' }, s.org.name)), add),
+    active.length
+      ? askBar(['Maak een kortingscode VROEG10 voor 10% korting', 'Laat de early birds twee weken langer lopen', 'Voeg een duoticket toe van € 45'])
+      : askBar(['Zomerfeest op 26 juni in het Stadspark, tickets € 25', 'Benefietdiner op 14 maart, 80 plekken van € 65', 'Gratis open dag op 5 september, maximaal 300 bezoekers'],
+        { title: 'Vertel wat je organiseert', placeholder: 'Bijvoorbeeld: feest op 26 juni, tickets € 25' }),
     payBanner(s.payments.mode, true),
     active.length
       ? h('div', { class: 'ev-grid' }, active.map(eventCard))
