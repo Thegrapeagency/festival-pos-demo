@@ -910,3 +910,11 @@ h3 { font-weight:600; letter-spacing:.01em; }
 .ask-ex button:hover { border-color:var(--apricot); color:#fff; }
 .ask :focus-visible { outline-color:var(--apricot); box-shadow:none; }
 @media (max-width:640px) { .ask { padding:24px 20px; } .ask-form { flex-direction:column; } .ask h2 { font-size:28px; } .welcome { padding:28px 22px; } .welcome h1 { font-size:36px; } .auth-main { padding:24px 20px 40px; } }
+
+/* ---------- assistent: knoppen, code en logo uploaden ---------- */
+.assist-links { display:grid; gap:8px; align-self:stretch; }
+.assist-links .btn { justify-content:space-between; text-transform:none; letter-spacing:0; font-size:15px; font-weight:500; }
+.assist-code { margin:10px 0 0; padding:12px; background:var(--petrol-950); color:#DCE9E8; font-family:var(--font-mono); font-size:12px; line-height:1.6; white-space:pre-wrap; word-break:break-all; }
+.assist-clip { flex:none; width:46px; height:46px; display:inline-grid; place-items:center; border:1px solid var(--line-strong); background:var(--paper); color:var(--ink2); border-radius:var(--r-sm); cursor:pointer; }
+.assist-clip:hover { border-color:var(--edge-accent); color:var(--head); }
+.assist-clip:disabled { opacity:.5; cursor:default; }

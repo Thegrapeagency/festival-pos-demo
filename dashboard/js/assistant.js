@@ -2,10 +2,11 @@
 // wat hij wil regelen. De server voert het uit; live zetten of pauzeren vraagt hier
 // altijd een klik. Antwoorden worden als platte tekst getoond, nooit als HTML: alleen
 // **vet** en regels die met "- " beginnen krijgen opmaak, opgebouwd uit losse elementen.
-import { rpc, fn } from './api.js';
+import { rpc, fn, upload, BASE } from './api.js';
+import { prepareImage, analyseImage } from './palette.js';
 import { VOORBEELD } from './voorbeeld.js';
-import { h, icon, ornament, notice, toast, BRAND } from './ui.js';
-import { S, loadState } from './store.js';
+import { h, icon, ornament, notice, toast, copyText, BRAND } from './ui.js';
+import { S, loadState, shopUrl } from './store.js';
 
 const MAX_CHARS = 1000;      // de server weigert langere berichten
 const WARN_AT = 900;
@@ -15,8 +16,8 @@ const TIMEOUT = 75000;
 const STORE = 'entree_assistant_chat';
 const EXAMPLES = [
   'Maak een ticket voor de zaterdag van € 75, 700 beschikbaar',
-  'Laat de early birds twee weken langer lopen',
-  'Zet de kleur van mijn shop op #1F5F68',
+  'Wat moet er nog gebeuren voordat ik live kan?',
+  'Vraag kopers bij het afrekenen naar dieetwensen',
   'Maak een kortingscode VROEG10 voor 10% korting',
 ];
 const BLOCKED = {
@@ -90,7 +91,7 @@ function build() {
   const emptyEl = h('div', { class: 'assist-empty' },
     ornament('burst', 'assist-burst'),
     h('h3', null, 'Bouw en beheer je shop door te typen'),
-    h('p', { class: 'assist-lead' }, 'Typ in gewone woorden wat er moet veranderen aan je tickets, kortingscodes, eventgegevens of huisstijl, dan pas ik het voor je aan.'),
+    h('p', { class: 'assist-lead' }, 'Typ in gewone woorden wat je wilt: een event, tickets, kortingscodes, vragen aan de koper, trackinglinks of je huisstijl. Je logo upload je met het plaatje links van het invoerveld.'),
     h('p', { class: 'assist-label', id: 'assist-ex' }, 'Voorbeelden om mee te beginnen'),
     h('ul', { class: 'assist-examples', 'aria-labelledby': 'assist-ex' }, EXAMPLES.map((t) => h('li', null,
       h('button', { type: 'button', class: 'assist-example', onclick: () => useExample(t) }, h('span', null, t), icon('right', 15))))),
@@ -106,8 +107,10 @@ function build() {
 
   const input = h('textarea', { id: 'assist-input', rows: '1', placeholder: 'Typ wat je wilt regelen', 'aria-describedby': 'assist-hint assist-count', autocomplete: 'off' });
   const sendBtn = h('button', { class: 'assist-send', type: 'submit', 'aria-label': 'Bericht versturen', title: 'Versturen' }, icon('send', 19));
+  const file = h('input', { type: 'file', accept: 'image/png,image/jpeg,image/webp,image/svg+xml,.svg', hidden: true, onchange: () => { const f = file.files && file.files[0]; file.value = ''; if (f) addLogo(f); } });
+  const clip = h('button', { class: 'assist-clip', type: 'button', 'aria-label': 'Logo uploaden', title: 'Logo uploaden', onclick: () => file.click() }, icon('image', 19));
   const form = h('form', { class: 'assist-form', novalidate: true, onsubmit: (e) => { e.preventDefault(); send(); } },
-    h('label', { class: 'sr', for: 'assist-input' }, 'Je bericht aan de assistent'), input, sendBtn);
+    h('label', { class: 'sr', for: 'assist-input' }, 'Je bericht aan de assistent'), clip, file, input, sendBtn);
   const ctx = h('p', { class: 'assist-ctx', hidden: true });
   const hint = h('span', { id: 'assist-hint' }, 'Enter verstuurt, Shift+Enter is een nieuwe regel');
   const left = h('span', { class: 'assist-left', hidden: true });
@@ -142,13 +145,15 @@ function build() {
   });
 
   document.body.append(root);
-  ui = { root, fab, panel, scroll, emptyEl, log, typing, live, meta, input, sendBtn, ctx, hint, left, count, block, fresh, close, nodes: new Map(), waitTimer: null };
+  ui = { clip, root, fab, panel, scroll, emptyEl, log, typing, live, meta, input, sendBtn, ctx, hint, left, count, block, fresh, close, nodes: new Map(), waitTimer: null };
 }
 
 // ---------- tekenen ----------
 function bubble(m) {
   if (m.kind === 'confirm') return confirmCard(m);
   if (m.kind === 'brand') return brandCard(m);
+  if (m.kind === 'links') return linksCard(m);
+  if (m.kind === 'embed') return embedCard(m);
   const cls = 'assist-msg ' + (m.role === 'user' ? 'is-user' : 'is-assistant') + (m.kind === 'error' ? ' is-error' : '');
   const who = h('span', { class: 'sr' }, m.role === 'user' ? 'Jij: ' : m.kind === 'error' ? 'Melding: ' : 'Assistent: ');
   const text = h('span', { class: 'assist-text' });
@@ -220,6 +225,37 @@ function confirmCard(m) {
   return card;
 }
 
+// Knoppen naar een scherm van het dashboard. De server stuurt alleen een bestemming uit een vaste lijst.
+const DEST = {
+  betalingen: ['Kies hoe je betaald wordt', () => '#/settings'],
+  huisstijl: ['Naar Huisstijl', (id) => `#/event/${id}/huisstijl`],
+  op_je_site: ['Code en link voor je site', (id) => `#/event/${id}/site`],
+  tickets: ['Naar Tickets', (id) => `#/event/${id}/tickets`],
+  kortingscodes: ['Naar Kortingscodes', (id) => `#/event/${id}/codes`],
+  vragen: ['Naar Vragen', (id) => `#/event/${id}/vragen`],
+  trackinglinks: ['Naar Trackinglinks', (id) => `#/event/${id}/trackinglinks`],
+  scannen: ['Naar Scannen', (id) => `#/event/${id}/scannen`],
+  bestellingen: ['Naar Bestellingen', (id) => `#/event/${id}/bestellingen`],
+  overzicht: ['Naar het overzicht', (id) => `#/event/${id}/overzicht`],
+};
+function linksCard(m) {
+  const items = (m.links || []).filter((l) => DEST[l.to] && (l.to === 'betalingen' || /^[0-9a-f-]{36}$/.test(l.event_id || '')));
+  return h('div', { class: 'assist-links' }, items.map((l) => h('a', { class: 'btn', href: DEST[l.to][1](l.event_id) }, DEST[l.to][0], icon('right', 15))));
+}
+function embedCard(m) {
+  const slug = String(m.embed.slug || '').replace(/[^a-z0-9-]/gi, '');
+  const code = `<div data-entree-shop="${slug}"></div>\n<script async src="${BASE}/embed.js"></` + 'script>';
+  const url = shopUrl(slug);
+  const pre = h('pre', { class: 'assist-code' }); pre.textContent = code;
+  return h('div', { class: 'assist-card is-embed' },
+    h('h3', null, 'Je shop op je site'),
+    h('p', null, m.embed.live ? 'Plak deze regel op de plek waar de shop moet komen.' : 'Plak deze regel op de plek waar de shop moet komen. Bezoekers zien de shop zodra je de verkoop live zet.'),
+    pre,
+    h('div', { class: 'assist-card-actions' },
+      h('button', { class: 'btn', type: 'button', onclick: () => copyText(url, 'Link gekopieerd') }, icon('link', 15), 'Kopieer link'),
+      h('button', { class: 'btn btn-primary', type: 'button', onclick: () => copyText(code, 'Code gekopieerd') }, icon('copy', 15), 'Kopieer code')));
+}
+
 function brandCard(m) {
   const card = h('div', { class: 'assist-card is-brand' }, h('h3', null, 'De huisstijl is aangepast'));
   if (m.done) { card.append(h('p', { class: 'assist-card-ok' }, icon('check', 16), 'De huisstijl is herladen.')); return card; }
@@ -260,6 +296,7 @@ function paintComposer() {
   input.disabled = !!blocked;
   sendBtn.disabled = !!blocked || busy || over > 0 || !input.value.trim();
   sendBtn.classList.toggle('is-busy', busy);
+  ui.clip.disabled = !!blocked || busy;
   block.hidden = !blocked;
   if (blocked) block.replaceChildren(notice('info', BLOCKED[blocked][0]));
   input.placeholder = blocked ? BLOCKED[blocked][1] : 'Typ wat je wilt regelen';
@@ -346,6 +383,9 @@ async function send(extra) {
     const confirm = d.confirm && d.confirm.action === 'set_live' && d.confirm.event_id ? d.confirm : null;
     const reply = String(d.reply == null ? '' : d.reply).trim();
     if (reply || !confirm) push({ role: 'assistant', kind: 'text', text: reply || 'Daar heb ik geen antwoord op. Probeer het in andere woorden.' });
+    const links = Array.isArray(d.links) ? d.links.slice(0, 3).map((l) => ({ to: String(l.to || ''), event_id: String(l.event_id || '') })) : [];
+    if (links.length) push({ role: 'assistant', kind: 'links', text: '', links });
+    if (d.embed && d.embed.slug) push({ role: 'assistant', kind: 'embed', text: '', embed: { slug: String(d.embed.slug), live: d.embed.live === true } });
     if (confirm) push({ role: 'assistant', kind: 'confirm', text: '', confirm: { event_id: String(confirm.event_id), live: confirm.live === true, event_name: String(confirm.event_name || ''), state: 'open' } });
     if (Array.isArray(d.changed) && d.changed.length) await refreshChanged(d.changed.map(String));
   } catch (e) {
@@ -374,6 +414,42 @@ async function send(extra) {
       const a = document.activeElement;
       if (open && (!a || a === document.body || ui.panel.contains(a))) focusInput();
     }
+  }
+}
+
+// Een logo uploaden vanuit het gesprek. Dit gaat buiten Claude om: het bestand komt in de shop
+// van het event te staan en de kleuren van de shop worden op het logo afgestemd.
+async function addLogo(f) {
+  if (busy || blocked) return;
+  let ev = currentEvent();
+  if (!ev) {
+    const active = ((S.state && S.state.events) || []).filter((e) => !e.archived);
+    if (active.length === 1) ev = { id: active[0].id, name: active[0].name };
+  }
+  if (!ev) { push({ role: 'assistant', kind: 'note', text: 'Open eerst het event waar dit logo bij hoort. Dan zet ik het in die shop.' }); return; }
+  push({ role: 'user', kind: 'note', text: `Logo: ${String(f.name || 'bestand').slice(0, 80)}` });
+  setBusy(true); toBottom();
+  try {
+    let prep;
+    try { prep = await prepareImage(f, { maxW: 800, allowSvg: true }); }
+    catch (ex) { throw new Error(ex && ex.message === 'too_big' ? 'Dit bestand is te groot. Kies een bestand tot 15 MB (SVG tot 1 MB).' : 'Dit bestand kan ik niet lezen. Kies een JPG, PNG, WebP of SVG.'); }
+    const url = await upload(S.state.org.id, `logo-${Date.now().toString(36)}.${prep.ext}`, prep.blob, prep.mime);
+    let colors = null;
+    try { colors = (await analyseImage(f)).suggestion; } catch { /* dan alleen het logo */ }
+    const d = await rpc('entree_event_get', { event_id: ev.id });
+    const shop = { ...((d.event && d.event.shop) || {}) };
+    shop.brand = { ...(shop.brand || {}), logo_url: url, ...(colors || {}) };
+    await rpc('entree_event_save', { id: ev.id, shop });
+    push({ role: 'assistant', kind: 'text', text: colors
+      ? `Je logo staat in de shop van **${ev.name}** en de kleuren zijn erop afgestemd. Bevalt een kleur niet, zeg dan welke je anders wilt.`
+      : `Je logo staat in de shop van **${ev.name}**. De kleuren kon ik niet uit dit bestand halen; zeg welke kleur je wilt, dan stel ik hem in.` });
+    push({ role: 'assistant', kind: 'links', text: '', links: [{ to: 'huisstijl', event_id: ev.id }] });
+    await refreshChanged([ev.id]);
+  } catch (e) {
+    if (e && e.code === 'session') return;
+    push({ role: 'assistant', kind: e && e.code === 'voorbeeld' ? 'note' : 'error', text: (e && e.message) || 'Het uploaden lukte niet. Probeer het opnieuw.' });
+  } finally {
+    persist(); setBusy(false); toBottom(); focusInput();
   }
 }
 
